@@ -3,19 +3,16 @@
  */
 
 import { execFile } from "node:child_process";
-import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  statSync,
-  unlinkSync,
-  writeFileSync,
-} from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { homedir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
+import {
+  deleteAutosave,
+  loadAutosave,
+  scheduleAutosave,
+} from "./editor-autosave.js";
+import { error, json, readBody } from "./editor-http.js";
 import { extractData } from "./extract.js";
 import {
   applyPacedTiming,
@@ -80,13 +77,8 @@ function sessionResponse(id, session, hasEdits, extra = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Autosave
+// Server options
 // ---------------------------------------------------------------------------
-
-const AUTOSAVE_DIR = join(homedir(), ".claude-replay", "autosave");
-const autosaveTimers = new Map(); // sessionId → timeout handle
-
-type RequestBody = Record<string, any>;
 
 interface StartEditorOptions {
   open?: boolean;
@@ -94,113 +86,6 @@ interface StartEditorOptions {
   initialFile?: string;
   noOriginCheck?: boolean;
   allowedOrigins?: string[];
-}
-
-function autosaveKey(sourcePath) {
-  return (
-    createHash("sha256").update(sourcePath).digest("hex").slice(0, 16) + ".json"
-  );
-}
-
-function autosavePath(sourcePath) {
-  return join(AUTOSAVE_DIR, autosaveKey(sourcePath));
-}
-
-/** Schedule an autosave (throttled: at most once per 2 seconds per session). */
-function scheduleAutosave(session) {
-  const id = session.sourcePath;
-  if (autosaveTimers.has(id)) return; // already scheduled
-  autosaveTimers.set(
-    id,
-    setTimeout(() => {
-      autosaveTimers.delete(id);
-      try {
-        mkdirSync(AUTOSAVE_DIR, { recursive: true });
-        const data = {
-          sourcePath: session.sourcePath,
-          workingTurns: session.workingTurns,
-          excludedTurns: session.excludedTurns || [],
-          bookmarks: session.bookmarks || [],
-        };
-        writeFileSync(autosavePath(session.sourcePath), JSON.stringify(data));
-      } catch {
-        /* ignore write errors */
-      }
-    }, 2000),
-  );
-}
-
-/** Load autosave data for a source path, if it exists. */
-function loadAutosave(sourcePath) {
-  try {
-    const p = autosavePath(sourcePath);
-    if (!existsSync(p)) return null;
-    return JSON.parse(readFileSync(p, "utf-8"));
-  } catch {
-    return null;
-  }
-}
-
-/** Delete autosave for a source path. */
-function deleteAutosave(sourcePath) {
-  try {
-    const p = autosavePath(sourcePath);
-    if (existsSync(p)) unlinkSync(p);
-  } catch {
-    /* ignore */
-  }
-}
-
-// ---------------------------------------------------------------------------
-// HTTP helpers
-// ---------------------------------------------------------------------------
-
-const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10 MB
-
-function readBody(req): Promise<RequestBody> {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    let size = 0;
-    let settled = false;
-    req.on("data", (c) => {
-      if (settled) return;
-      size += c.length;
-      if (size > MAX_BODY_SIZE) {
-        settled = true;
-        req.destroy();
-        reject(new Error("Request body too large"));
-        return;
-      }
-      chunks.push(c);
-    });
-    req.on("end", () => {
-      if (settled) return;
-      settled = true;
-      try {
-        resolve(JSON.parse(Buffer.concat(chunks).toString()));
-      } catch {
-        reject(new Error("Invalid JSON body"));
-      }
-    });
-    req.on("error", (err) => {
-      if (settled) return;
-      settled = true;
-      reject(err);
-    });
-  });
-}
-
-function json(res, data, status = 200) {
-  const body = JSON.stringify(data);
-  res.writeHead(status, {
-    "Content-Type": "application/json",
-    "Content-Length": Buffer.byteLength(body),
-  });
-  res.end(body);
-}
-
-function error(res, message, status = 400) {
-  json(res, { error: message }, status);
 }
 
 // ---------------------------------------------------------------------------

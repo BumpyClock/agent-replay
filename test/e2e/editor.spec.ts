@@ -1,4 +1,4 @@
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "@playwright/test";
 
@@ -48,10 +48,11 @@ async function loadFixture(page) {
   await page.locator("#browsePathInput").press("Enter");
 
   // Wait for file list and click the fixture
-  await page.waitForSelector(`.browse-item[data-path="${FIXTURE_PATH}"]`, {
-    timeout: 5000,
+  const fixtureItem = page.locator(".browse-item", {
+    hasText: basename(FIXTURE_PATH),
   });
-  await page.locator(`.browse-item[data-path="${FIXTURE_PATH}"]`).click();
+  await expect(fixtureItem).toBeVisible({ timeout: 5000 });
+  await fixtureItem.click();
 
   // Wait for turns to load
   await page.waitForSelector(".turn-card", { timeout: 5000 });

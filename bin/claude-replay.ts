@@ -13,60 +13,12 @@ import {
 } from "node:fs";
 import { createServer } from "node:http";
 import { basename, dirname, resolve } from "node:path";
-import { parseArgs } from "node:util";
+import { buildReplay } from "../src/build-replay.js";
+import { parseCliArgs } from "../src/cli-args.js";
 import { extractData } from "../src/extract.js";
-import {
-  applyPacedTiming,
-  detectFormat,
-  filterTurns,
-  parseTranscript,
-} from "../src/parser.js";
-import { render } from "../src/renderer.js";
 import { getTheme, listThemes, loadThemeFile } from "../src/themes.js";
 
-const options = {
-  port: { type: "string" },
-  host: { type: "string" },
-  "no-origin-check": { type: "boolean", default: false },
-  output: { type: "string", short: "o" },
-  turns: { type: "string" },
-  "exclude-turns": { type: "string" },
-  from: { type: "string" },
-  to: { type: "string" },
-  speed: { type: "string", default: "1" },
-  "no-thinking": { type: "boolean", default: false },
-  "no-tool-calls": { type: "boolean", default: false },
-  theme: { type: "string", default: "tokyo-night" },
-  "theme-file": { type: "string" },
-  "list-themes": { type: "boolean", default: false },
-  "font-size": { type: "string" },
-  "no-auto-redact": { type: "boolean", default: false },
-  redact: { type: "string", multiple: true },
-  title: { type: "string" },
-  description: { type: "string" },
-  "og-image": { type: "string" },
-  "user-label": { type: "string", default: "User" },
-  "assistant-label": { type: "string" },
-  timing: { type: "string" },
-  mark: { type: "string", multiple: true },
-  bookmarks: { type: "string" },
-  "no-minify": { type: "boolean", default: false },
-  "no-compress": { type: "boolean", default: false },
-  format: { type: "string" },
-  serve: { type: "boolean", default: false },
-  watch: { type: "boolean", default: false },
-  open: { type: "boolean", default: false },
-  version: { type: "boolean", short: "v", default: false },
-  help: { type: "boolean", short: "h", default: false },
-} as const;
-
-let parsed;
-try {
-  parsed = parseArgs({ options, allowPositionals: true });
-} catch (e) {
-  console.error(`Error: ${e.message}`);
-  process.exit(1);
-}
+const parsed = parseCliArgs();
 
 const { values, positionals } = parsed;
 
@@ -422,104 +374,33 @@ if (values.redact) {
   });
 }
 
+/** Build options shared across normal, --serve, and --watch modes. */
+const buildOpts = {
+  turnRange,
+  excludeTurns,
+  timeFrom: values.from,
+  timeTo: values.to,
+  timing: timing as "auto" | "real" | "paced",
+  speed,
+  theme,
+  fontSize: values["font-size"] || "normal",
+  title,
+  userLabel: values["user-label"],
+  assistantLabelOverride: values["assistant-label"] || undefined,
+  description: values.description,
+  ogImage: values["og-image"],
+  redactSecrets: !values["no-auto-redact"],
+  redactRules,
+  showThinking: !values["no-thinking"],
+  showToolCalls: !values["no-tool-calls"],
+  cliBookmarks,
+  minified: !values["no-minify"],
+  compress: !values["no-compress"],
+};
+
 /** Parse input files and render to HTML. Can be called repeatedly for --watch. */
-function buildReplay() {
-  let format = detectFormat(inputFiles[0]);
-  const allTurns = [];
-  for (const file of inputFiles) {
-    const fileTurns = parseTranscript(file);
-    if (inputFiles.length > 1) {
-      const f = detectFormat(file);
-      if (f === "cursor") format = "cursor";
-    }
-    allTurns.push(...fileTurns);
-  }
-
-  if (inputFiles.length > 1) {
-    const allHaveTimestamps =
-      allTurns.length > 0 && allTurns.every((t) => t.timestamp);
-    if (allHaveTimestamps) {
-      allTurns.sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      );
-    }
-    for (let i = 0; i < allTurns.length; i++) {
-      allTurns[i].index = i + 1;
-    }
-    console.error(
-      `Merged ${inputFiles.length} sessions (${allTurns.length} turns total)`,
-    );
-  }
-
-  const turns = filterTurns(allTurns, {
-    turnRange,
-    excludeTurns,
-    timeFrom: values.from,
-    timeTo: values.to,
-  });
-
-  const indexMap = new Map();
-  for (let i = 0; i < turns.length; i++) {
-    indexMap.set(turns[i].index, i + 1);
-    turns[i].index = i + 1;
-  }
-
-  if (turns.length === 0) {
-    console.error("Warning: no turns found after filtering.");
-  }
-
-  const hasTimestamps = turns.some((t) => t.timestamp);
-  const usedPacing =
-    timing === "paced" || (timing === "auto" && !hasTimestamps);
-  if (usedPacing) {
-    applyPacedTiming(turns);
-  }
-  // Real timestamps are available when we didn't replace them with pacing
-  const hasRealTimestamps = hasTimestamps && !usedPacing;
-
-  const bookmarks = cliBookmarks
-    .map((bm) => ({ turn: indexMap.get(bm.turn), label: bm.label }))
-    .filter((bm) => bm.turn != null);
-
-  for (const t of turns) {
-    if (t.bookmark) {
-      bookmarks.push({ turn: t.index, label: t.bookmark });
-      delete t.bookmark;
-    }
-  }
-  bookmarks.sort((a, b) => a.turn - b.turn);
-
-  const html = render(turns, {
-    speed,
-    showThinking: !values["no-thinking"],
-    showToolCalls: !values["no-tool-calls"],
-    fontSize: values["font-size"] || "normal",
-    theme,
-    redactSecrets: !values["no-auto-redact"],
-    redactRules,
-    userLabel: values["user-label"],
-    assistantLabel:
-      values["assistant-label"] ||
-      (format === "gemini"
-        ? "Gemini"
-        : format === "codex"
-          ? "Codex"
-          : format === "cursor"
-            ? "Assistant"
-            : format === "opencode"
-              ? "OpenCode"
-              : "Claude"),
-    title,
-    description: values.description,
-    ogImage: values["og-image"],
-    bookmarks,
-    hasRealTimestamps,
-    minified: !values["no-minify"],
-    compress: !values["no-compress"],
-  });
-
-  return { html, turnCount: turns.length };
+function runBuild() {
+  return buildReplay(inputFiles, buildOpts);
 }
 
 // ---------------------------------------------------------------------------
@@ -534,7 +415,7 @@ if (values.serve) {
 
   function rebuild() {
     try {
-      const { html, turnCount } = buildReplay();
+      const { html, turnCount } = runBuild();
       currentHtml = html;
       currentTurnCount = turnCount;
       buildVersion++;
@@ -628,7 +509,7 @@ if (values.serve) {
 
   function rebuild() {
     try {
-      const { html, turnCount } = buildReplay();
+      const { html, turnCount } = runBuild();
       writeFileSync(values.output, html);
       console.error(
         `[${new Date().toLocaleTimeString()}] Wrote ${values.output} (${turnCount} turns)`,
@@ -651,7 +532,7 @@ if (values.serve) {
   console.error(`Watching ${inputFiles.length} file(s) for changes...`);
 } else {
   // Normal mode: build once and output
-  const { html, turnCount } = buildReplay();
+  const { html, turnCount } = runBuild();
 
   if (values.output) {
     writeFileSync(values.output, html);

@@ -86,7 +86,11 @@ Create `test/fixture-my-agent.jsonl` (or `.json`) with a minimal but representat
 Add a test section in `test/test-parser.ts`:
 
 ```js
-const MY_AGENT_FIXTURE = new URL("./fixture-my-agent.jsonl", import.meta.url).pathname;
+import { fileURLToPath } from "node:url";
+
+const MY_AGENT_FIXTURE = fileURLToPath(
+  new URL("./fixture-my-agent.jsonl", import.meta.url),
+);
 
 describe("MyAgent format", () => {
   it("detects my-agent format", () => {
