@@ -5,14 +5,14 @@ Quick pre-release checklist (~5 minutes). Covers things that require visual/inte
 ## Prerequisites
 
 ```bash
-npm test              # must pass
-npm run build         # rebuild minified template
+bun run test          # must pass
+bun run build         # rebuild minified template
 ```
 
 ## 1. Player — visual check (2 min)
 
 ```bash
-node bin/claude-replay.mjs test/e2e/fixture.jsonl -o /tmp/human-test.html --open
+node dist/bin/claude-replay.js test/e2e/fixture.jsonl -o /tmp/human-test.html --open
 ```
 
 - [ ] Splash screen shows, press Space to dismiss
@@ -29,7 +29,7 @@ node bin/claude-replay.mjs test/e2e/fixture.jsonl -o /tmp/human-test.html --open
 ## 2. Themes (30 sec)
 
 ```bash
-node bin/claude-replay.mjs test/e2e/fixture.jsonl --theme dracula -o /tmp/human-dracula.html --open
+node dist/bin/claude-replay.js test/e2e/fixture.jsonl --theme dracula -o /tmp/human-dracula.html --open
 ```
 
 - [ ] Dark theme loads, colors look intentional (not broken CSS)
@@ -38,7 +38,7 @@ node bin/claude-replay.mjs test/e2e/fixture.jsonl --theme dracula -o /tmp/human-
 ## 3. Codex replay (30 sec)
 
 ```bash
-node bin/claude-replay.mjs test/fixture-codex.jsonl -o /tmp/human-codex.html --open
+node dist/bin/claude-replay.js test/fixture-codex.jsonl -o /tmp/human-codex.html --open
 ```
 
 - [ ] Turns load, user text shows (not IDE context boilerplate)
@@ -50,7 +50,7 @@ node bin/claude-replay.mjs test/fixture-codex.jsonl -o /tmp/human-codex.html --o
 ## 4. Paced timing (30 sec)
 
 ```bash
-node bin/claude-replay.mjs test/fixture-cursor.jsonl -o /tmp/human-paced.html --timing paced --open
+node dist/bin/claude-replay.js test/fixture-cursor.jsonl -o /tmp/human-paced.html --timing paced --open
 ```
 
 - [ ] Timer shows non-zero duration (not 0:00 or absurd hours)
@@ -67,7 +67,7 @@ Open `/tmp/human-test.html#turn=3` in a **new tab** (not by editing URL in exist
 ## 6. Editor (1 min)
 
 ```bash
-node bin/claude-replay.mjs --port 7332
+node dist/bin/claude-replay.js --port 7332
 ```
 
 - [ ] Browser opens, sessions panel shows groups (Claude Code and any others you have)

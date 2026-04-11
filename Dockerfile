@@ -1,6 +1,6 @@
-FROM node:22-alpine
+FROM oven/bun:1.3.11-alpine
 
-RUN npm install -g claude-replay
+RUN bun add -g claude-replay
 
 EXPOSE 7331
 

@@ -182,8 +182,8 @@ kbd { background: var(--bg-surface); border: 1px solid var(--border); padding: 1
     <p>Turn AI coding sessions into interactive, shareable HTML replays.</p>
     <p class="sub">Supports Claude Code, Cursor, and Codex transcripts. Single self-contained HTML file, zero dependencies.</p>
     <div class="hero-actions">
-      <div class="install-box" id="installNpm" title="Click to copy">
-        <code>npm install -g claude-replay</code>
+      <div class="install-box" id="installBun" title="Click to copy">
+        <code>bun add -g claude-replay</code>
         <span class="copy-feedback"></span>
       </div>
       <a class="btn" href="https://github.com/es617/claude-replay" target="_blank" rel="noopener">GitHub</a>
@@ -223,7 +223,7 @@ kbd { background: var(--bg-surface); border: 1px solid var(--border); padding: 1
         <label>Title <span class="tip" title="Custom title shown in the replay header and browser tab">?</span> <input type="text" id="optTitle" placeholder="auto"></label>
         <label>Redact <span class="tip" title="Comma-separated text to replace with [REDACTED] in the output">?</span> <input type="text" id="optRedact" placeholder="text1, text2..."></label>
       </div>
-      <p class="editor-hint">For full editing — exclude turns, add bookmarks, edit prompts — <a href="https://www.npmjs.com/package/claude-replay" target="_blank" rel="noopener">install the CLI</a> and run <code>claude-replay</code> to launch the desktop editor.</p>
+      <p class="editor-hint">For full editing — exclude turns, add bookmarks, edit prompts — <a href="https://www.npmjs.com/package/claude-replay" target="_blank" rel="noopener">install the CLI</a> and run <code>claude-replay</code> to launch the local web editor.</p>
     </div>
   </div>
 
@@ -338,10 +338,10 @@ function scheduleRender() {
 }
 
 // Install copy
-$("installNpm").addEventListener("click", () => {
-  navigator.clipboard.writeText("npm install -g claude-replay").then(() => {
-    $("installNpm").classList.add("copied");
-    setTimeout(() => $("installNpm").classList.remove("copied"), 2000);
+$("installBun").addEventListener("click", () => {
+  navigator.clipboard.writeText("bun add -g claude-replay").then(() => {
+    $("installBun").classList.add("copied");
+    setTimeout(() => $("installBun").classList.remove("copied"), 2000);
   });
 });
 

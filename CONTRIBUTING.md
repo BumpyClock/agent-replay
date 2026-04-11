@@ -192,9 +192,9 @@ If your format uses JSONL with `{ type: "user"|"assistant", message: { content }
 ## Running Tests
 
 ```bash
-npm test              # Unit tests
-npm run test:e2e      # Playwright e2e tests
-npm run build         # Build template + compile TypeScript
+bun run test          # Unit tests
+bun run test:e2e      # Playwright e2e tests
+bun run build         # Build template + compile TypeScript
 ```
 
 ## Other Contributions

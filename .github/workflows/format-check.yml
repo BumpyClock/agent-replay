@@ -17,17 +17,21 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "22"
-      - run: npm install
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.11"
+      - run: bun install --frozen-lockfile
+      - run: bun run build
       - run: mkdir -p /tmp/test-project
 
       # ── Install CLI tools ───────────────────────────────
       - name: Install Claude Code
         if: env.HAS_ANTHROPIC == 'true'
-        run: npm install -g @anthropic-ai/claude-code@latest
+        run: bun add -g @anthropic-ai/claude-code@latest
 
       - name: Install Codex
         if: env.HAS_OPENAI == 'true'
-        run: npm install -g @openai/codex@latest
+        run: bun add -g @openai/codex@latest
 
       - name: Install Cursor CLI
         if: env.HAS_CURSOR == 'true'
@@ -105,26 +109,26 @@ jobs:
       - name: Render Claude Code session
         if: env.HAS_ANTHROPIC == 'true'
         run: |
-          node bin/claude-replay.mjs "$CLAUDE_SESSION" -o /tmp/replay-claude.html --no-minify 2>&1
+          node dist/bin/claude-replay.js "$CLAUDE_SESSION" -o /tmp/replay-claude.html --no-minify 2>&1
           head -1 /tmp/replay-claude.html
 
       - name: Render Codex session
         if: env.HAS_OPENAI == 'true'
         run: |
-          node bin/claude-replay.mjs "$CODEX_SESSION" -o /tmp/replay-codex.html --no-minify 2>&1
+          node dist/bin/claude-replay.js "$CODEX_SESSION" -o /tmp/replay-codex.html --no-minify 2>&1
           head -1 /tmp/replay-codex.html
 
       - name: Render Cursor session
         if: env.HAS_CURSOR == 'true'
         run: |
-          node bin/claude-replay.mjs "$CURSOR_SESSION" -o /tmp/replay-cursor.html --no-minify 2>&1
+          node dist/bin/claude-replay.js "$CURSOR_SESSION" -o /tmp/replay-cursor.html --no-minify 2>&1
           head -1 /tmp/replay-cursor.html
 
       # ── Roundtrip: extract and verify ───────────────────
       - name: Roundtrip — extract and verify
         if: env.HAS_ANTHROPIC == 'true'
         run: |
-          node bin/claude-replay.mjs extract /tmp/replay-claude.html -o /tmp/extracted.jsonl 2>&1
+          node dist/bin/claude-replay.js extract /tmp/replay-claude.html -o /tmp/extracted.jsonl 2>&1
           node -e "
             const lines = require('fs').readFileSync('/tmp/extracted.jsonl','utf8').trim().split('\n');
             const turns = lines.map(l => JSON.parse(l)).filter(t => t.user_text !== undefined);

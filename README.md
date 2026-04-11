@@ -60,13 +60,13 @@ claude-replay is useful for:
 ## Installation
 
 ```bash
-npm install -g claude-replay
+bun add -g claude-replay
 ```
 
-Or run directly with npx (zero install):
+Or run directly with bunx (zero install):
 
 ```bash
-npx claude-replay
+bunx claude-replay
 ```
 
 ### Docker
@@ -422,12 +422,13 @@ Generated HTML files use two layers of optimization (zero external dependencies)
 ### Development
 
 ```bash
-npm install         # install dev dependencies
-npm run build       # build template + compile TypeScript to dist/
-npm run typecheck   # type-check without emitting
-npm run doctor      # auto-format then lint (Biome)
-npm test            # unit tests
-npm run test:e2e    # Playwright e2e tests
+bun install         # install dev dependencies
+bun run dev         # launch editor server from TS source
+bun run build       # build template + compile TypeScript to dist/
+bun run typecheck   # type-check without emitting
+bun run doctor      # auto-format then lint (Biome)
+bun run test        # unit tests
+bun run test:e2e    # Playwright e2e tests
 ```
 
 The minified template is built in CI and included in npm releases. Without it, the CLI falls back to the unminified template automatically.
