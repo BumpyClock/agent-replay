@@ -11,9 +11,10 @@
   ],
   "packageManager": "bun@1.3.11",
   "scripts": {
-    "build": "tsx scripts/build-template.ts && tsc -p tsconfig.json && tsx scripts/copy-dist-assets.ts",
+    "build": "tsx scripts/build-editor-app.ts && tsx scripts/build-template.ts && tsc -p tsconfig.json && tsx scripts/copy-dist-assets.ts",
     "build:website": "bun run build && tsx scripts/build-website.ts",
-    "dev": "node --import tsx bin/claude-replay.ts",
+    "dev": "tsx watch --clear-screen=false scripts/dev-editor.ts",
+    "dev:cli": "node --import tsx bin/claude-replay.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "format": "biome format --write .",

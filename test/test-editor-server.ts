@@ -73,6 +73,26 @@ describe("editor-server API", () => {
     assert.ok(typeof data.homedir === "string");
   });
 
+  it("GET / returns the editor shell", async () => {
+    const res = await fetch(`${baseUrl}/`);
+    assert.equal(res.status, 200);
+    const html = await res.text();
+    assert.match(html, /<!DOCTYPE html>/);
+    assert.match(html, /src="\/editor-app\.js"/);
+  });
+
+  it("GET /editor-app.js returns the compiled editor app", async () => {
+    const res = await fetch(`${baseUrl}/editor-app.js`);
+    assert.equal(res.status, 200);
+    assert.match(
+      res.headers.get("content-type") || "",
+      /application\/javascript/,
+    );
+    const js = await res.text();
+    assert.match(js, /loadSessions/);
+    assert.match(js, /apiJson/);
+  });
+
   it("GET /api/themes returns theme list", async () => {
     const res = await fetch(`${baseUrl}/api/themes`);
     assert.equal(res.status, 200);

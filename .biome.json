@@ -5,6 +5,7 @@
       "**",
       "!dist",
       "!docs/*.html",
+      "!template/editor-app.js",
       "!template/player.html",
       "!template/player.min.html"
     ]

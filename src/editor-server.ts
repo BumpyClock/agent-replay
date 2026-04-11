@@ -7,6 +7,12 @@ import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { homedir } from "node:os";
 import {
+  bundleEditorApp,
+  editorDevVersion,
+  readBuiltEditorApp,
+  readEditorShell,
+} from "./editor-assets.js";
+import {
   deleteAutosave,
   loadAutosave,
   scheduleAutosave,
@@ -27,10 +33,28 @@ import {
 import { render } from "./renderer.js";
 import { getTheme, listThemes } from "./themes.js";
 
-const EDITOR_HTML_PATH = new URL("../template/editor.html", import.meta.url);
 const PKG = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
 );
+
+const DEV_RELOAD_SCRIPT = `<script>
+(function() {
+  var currentVersion = null;
+  async function poll() {
+    try {
+      var response = await fetch('/__editor-dev-version', { cache: 'no-store' });
+      var data = await response.json();
+      if (currentVersion && currentVersion !== data.version) {
+        location.reload();
+        return;
+      }
+      currentVersion = data.version;
+    } catch {}
+    setTimeout(poll, 1000);
+  }
+  poll();
+})();
+</script>`;
 
 // ---------------------------------------------------------------------------
 // In-memory session store
@@ -90,6 +114,7 @@ interface StartEditorOptions {
   initialFile?: string;
   noOriginCheck?: boolean;
   allowedOrigins?: string[];
+  devMode?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -514,6 +539,7 @@ export function startEditor(
     initialFile,
     noOriginCheck = false,
     allowedOrigins,
+    devMode = false,
   }: StartEditorOptions = {},
 ): Promise<void> {
   // Configure origin checking
@@ -529,19 +555,40 @@ export function startEditor(
       : []),
   ]);
 
-  const editorHtml = readFileSync(EDITOR_HTML_PATH, "utf-8");
-
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
     const pathname = url.pathname;
 
     try {
       if (pathname === "/" && req.method === "GET") {
+        const editorHtml = devMode
+          ? readEditorShell().replace("</body>", `${DEV_RELOAD_SCRIPT}</body>`)
+          : readEditorShell();
         res.writeHead(200, {
           "Content-Type": "text/html; charset=utf-8",
           "Content-Length": Buffer.byteLength(editorHtml),
+          "Cache-Control": devMode ? "no-store" : "public, max-age=0",
         });
         return res.end(editorHtml);
+      }
+
+      if (pathname === "/editor-app.js" && req.method === "GET") {
+        const editorApp = devMode
+          ? await bundleEditorApp()
+          : readBuiltEditorApp();
+        res.writeHead(200, {
+          "Content-Type": "application/javascript; charset=utf-8",
+          "Content-Length": Buffer.byteLength(editorApp),
+          "Cache-Control": devMode ? "no-store" : "public, max-age=0",
+        });
+        return res.end(editorApp);
+      }
+
+      if (pathname === "/__editor-dev-version" && req.method === "GET") {
+        if (!devMode) {
+          return error(res, "Not found", 404);
+        }
+        return json(res, { version: editorDevVersion() });
       }
 
       if (pathname.startsWith("/api/")) {
@@ -575,6 +622,7 @@ export function startEditor(
         ? `${baseUrl}?load=${encodeURIComponent(initialFile)}`
         : baseUrl;
       console.log(`claude-replay editor running at ${baseUrl}`);
+      if (devMode) console.log("Editor dev mode enabled with live reload");
       if (initialFile) console.log(`Auto-loading: ${initialFile}`);
       console.log("Press Ctrl+C to stop.\n");
       if (open) {
