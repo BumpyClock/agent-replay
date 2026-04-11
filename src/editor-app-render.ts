@@ -32,10 +32,8 @@ function highlightSnippet(snippet: string, query: string): string {
 export function renderSessions(groups: SessionGroup[]): string {
   let html = "";
   for (const group of groups) {
-    html += `<div class="session-group-label open"><span class="arrow">&#9654;</span> ${escapeHtml(group.name)}</div>`;
-    html += `<div class="session-group-content">`;
     for (const project of group.projects) {
-      const projectId = `proj-${escapeHtml(group.name)}-${escapeHtml(project.dirName)}`;
+      const projectId = `proj-${escapeHtml(project.dirName)}`;
       html += `<div class="session-project">`;
       html += `<div class="session-project-name" data-target="${projectId}" title="${escapeHtml(project.dirName.replace(/^-+/, ""))}"><span class="arrow">&#9654;</span> ${escapeHtml(project.name)}</div>`;
       html += `<div class="session-list" id="${projectId}">`;
@@ -43,11 +41,13 @@ export function renderSessions(groups: SessionGroup[]): string {
         const dateStr = session.date
           ? new Date(session.date).toLocaleDateString()
           : "";
-        html += `<div class="session-item" data-path="${escapeHtml(session.path)}">${escapeHtml(session.file.replace(".jsonl", ""))} <span class="badge">${dateStr}</span></div>`;
+        const sourceBadge = session.source
+          ? `<span class="badge agent-badge agent-${escapeHtml(session.source.toLowerCase().replace(/\s+/g, "-"))}">${escapeHtml(session.source)}</span>`
+          : "";
+        html += `<div class="session-item" data-path="${escapeHtml(session.path)}">${escapeHtml(session.file.replace(".jsonl", ""))} ${sourceBadge}<span class="badge">${dateStr}</span></div>`;
       }
       html += `</div></div>`;
     }
-    html += `</div>`;
   }
   return html;
 }
@@ -63,7 +63,10 @@ export function renderSearchResults(
   let html = "";
   for (const result of results) {
     html += `<div class="search-result-item" data-path="${escapeHtml(result.path)}">`;
-    html += `<div class="search-result-meta">${escapeHtml(result.group)} / ${escapeHtml(result.project)} / ${escapeHtml(result.file)}</div>`;
+    const sourceBadge = result.source
+      ? `<span class="badge agent-badge agent-${escapeHtml(result.source.toLowerCase().replace(/\s+/g, "-"))}">${escapeHtml(result.source)}</span> `
+      : "";
+    html += `<div class="search-result-meta">${sourceBadge}${escapeHtml(result.group)} / ${escapeHtml(result.file)}</div>`;
     html += `<div class="search-result-snippet">${highlightSnippet(result.snippet, query)}</div>`;
     html += `</div>`;
   }

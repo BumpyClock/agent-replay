@@ -12,20 +12,18 @@
   function renderSessions(groups) {
     let html = "";
     for (const group of groups) {
-      html += `<div class="session-group-label open"><span class="arrow">&#9654;</span> ${escapeHtml(group.name)}</div>`;
-      html += `<div class="session-group-content">`;
       for (const project of group.projects) {
-        const projectId = `proj-${escapeHtml(group.name)}-${escapeHtml(project.dirName)}`;
+        const projectId = `proj-${escapeHtml(project.dirName)}`;
         html += `<div class="session-project">`;
         html += `<div class="session-project-name" data-target="${projectId}" title="${escapeHtml(project.dirName.replace(/^-+/, ""))}"><span class="arrow">&#9654;</span> ${escapeHtml(project.name)}</div>`;
         html += `<div class="session-list" id="${projectId}">`;
         for (const session of project.sessions) {
           const dateStr = session.date ? new Date(session.date).toLocaleDateString() : "";
-          html += `<div class="session-item" data-path="${escapeHtml(session.path)}">${escapeHtml(session.file.replace(".jsonl", ""))} <span class="badge">${dateStr}</span></div>`;
+          const sourceBadge = session.source ? `<span class="badge agent-badge agent-${escapeHtml(session.source.toLowerCase().replace(/\s+/g, "-"))}">${escapeHtml(session.source)}</span>` : "";
+          html += `<div class="session-item" data-path="${escapeHtml(session.path)}">${escapeHtml(session.file.replace(".jsonl", ""))} ${sourceBadge}<span class="badge">${dateStr}</span></div>`;
         }
         html += `</div></div>`;
       }
-      html += `</div>`;
     }
     return html;
   }
@@ -36,7 +34,8 @@
     let html = "";
     for (const result of results) {
       html += `<div class="search-result-item" data-path="${escapeHtml(result.path)}">`;
-      html += `<div class="search-result-meta">${escapeHtml(result.group)} / ${escapeHtml(result.project)} / ${escapeHtml(result.file)}</div>`;
+      const sourceBadge = result.source ? `<span class="badge agent-badge agent-${escapeHtml(result.source.toLowerCase().replace(/\s+/g, "-"))}">${escapeHtml(result.source)}</span> ` : "";
+      html += `<div class="search-result-meta">${sourceBadge}${escapeHtml(result.group)} / ${escapeHtml(result.file)}</div>`;
       html += `<div class="search-result-snippet">${highlightSnippet(result.snippet, query)}</div>`;
       html += `</div>`;
     }
@@ -290,13 +289,6 @@
     }
   }
   function bindRenderedSessionTree() {
-    queryAll(elements.sessionsTree, ".session-group-label").forEach(
-      (element) => {
-        element.addEventListener("click", () => {
-          element.classList.toggle("open");
-        });
-      }
-    );
     queryAll(elements.sessionsTree, ".session-project-name").forEach(
       (element) => {
         element.addEventListener("click", () => {
@@ -353,17 +345,6 @@
           project.querySelector(".session-project-name")?.classList.add("open");
           project.querySelector(".session-list")?.classList.add("open");
         }
-      }
-    );
-    queryAll(elements.sessionsTree, ".session-group-label").forEach(
-      (label) => {
-        const content = label.nextElementSibling;
-        if (!(content instanceof HTMLElement)) return;
-        const anyVisible = content.querySelector(
-          ".session-project:not([style*='display: none'])"
-        ) !== null;
-        label.style.display = anyVisible ? "" : "none";
-        content.style.display = anyVisible ? "" : "none";
       }
     );
   }
@@ -830,8 +811,6 @@
       const project = item.closest(".session-project");
       project?.querySelector(".session-project-name")?.classList.add("open");
       project?.querySelector(".session-list")?.classList.add("open");
-      const groupContent = item.closest(".session-group-content");
-      groupContent?.previousElementSibling?.classList.add("open");
     }
     void loadSession(loadParam, item);
     history.replaceState(null, "", window.location.pathname);

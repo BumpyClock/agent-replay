@@ -7,6 +7,7 @@ export interface SessionFileEntry {
   path: string;
   file: string;
   date?: string;
+  source?: string;
 }
 
 export interface SessionProject {
@@ -33,6 +34,7 @@ export interface SearchResult {
   path: string;
   date?: string;
   snippet: string;
+  source?: string;
 }
 
 export interface SearchResponse {

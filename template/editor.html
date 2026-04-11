@@ -189,25 +189,6 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
 /* Sessions content */
 .sessions-content { padding: 4px 0; }
 
-.session-group-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-dim);
-  padding: 8px 12px 4px;
-  font-weight: 600;
-  cursor: pointer;
-  user-select: none;
-}
-.session-group-label .arrow {
-  display: inline-block;
-  font-size: 10px;
-  transition: transform 0.15s;
-}
-.session-group-label.open .arrow { transform: rotate(90deg); }
-.session-group-content { display: none; }
-.session-group-label.open + .session-group-content { display: block; }
-
 .session-project { padding: 0; }
 
 .session-project-name {
@@ -266,6 +247,16 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
   border-radius: 3px;
   margin-left: 4px;
 }
+
+.agent-badge {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.agent-badge.agent-claude-code { background: #d97706; color: #fff; }
+.agent-badge.agent-cursor { background: #2563eb; color: #fff; }
+.agent-badge.agent-copilot { background: #059669; color: #fff; }
+.agent-badge.agent-gemini { background: #7c3aed; color: #fff; }
+.agent-badge.agent-codex { background: #dc2626; color: #fff; }
 
 /* Browse folder UI */
 .browse-section {
@@ -972,7 +963,6 @@ body::before {
   padding-top: 10px;
 }
 
-.session-group-label,
 .browse-header,
 .search-hint,
 .toolbar-hint,

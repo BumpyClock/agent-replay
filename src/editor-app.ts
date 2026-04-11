@@ -294,14 +294,6 @@ function updateEditState(textEdits?: boolean): void {
 }
 
 function bindRenderedSessionTree(): void {
-  queryAll<HTMLElement>(elements.sessionsTree, ".session-group-label").forEach(
-    (element) => {
-      element.addEventListener("click", () => {
-        element.classList.toggle("open");
-      });
-    },
-  );
-
   queryAll<HTMLElement>(elements.sessionsTree, ".session-project-name").forEach(
     (element) => {
       element.addEventListener("click", () => {
@@ -377,19 +369,6 @@ function filterSessionsByName(query: string): void {
           .querySelector<HTMLElement>(".session-list")
           ?.classList.add("open");
       }
-    },
-  );
-
-  queryAll<HTMLElement>(elements.sessionsTree, ".session-group-label").forEach(
-    (label) => {
-      const content = label.nextElementSibling;
-      if (!(content instanceof HTMLElement)) return;
-      const anyVisible =
-        content.querySelector(
-          ".session-project:not([style*='display: none'])",
-        ) !== null;
-      label.style.display = anyVisible ? "" : "none";
-      content.style.display = anyVisible ? "" : "none";
     },
   );
 }
@@ -952,8 +931,6 @@ function autoLoadFromQuery(): void {
       ?.querySelector<HTMLElement>(".session-project-name")
       ?.classList.add("open");
     project?.querySelector<HTMLElement>(".session-list")?.classList.add("open");
-    const groupContent = item.closest<HTMLElement>(".session-group-content");
-    groupContent?.previousElementSibling?.classList.add("open");
   }
 
   void loadSession(loadParam, item);

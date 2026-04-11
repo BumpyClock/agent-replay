@@ -57,52 +57,86 @@ export function browseDirectory(dirPath: string) {
   };
 }
 
-/** Discover session folders under Claude Code and Cursor project dirs. */
+/** Session entry with agent source tag. */
+interface DiscoveredSession {
+  file: string;
+  path: string;
+  date: string | null;
+  source: string;
+}
+
+/** Sort sessions newest-first. */
+function sortSessions(sessions: DiscoveredSession[]): void {
+  sessions.sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return b.date.localeCompare(a.date);
+  });
+}
+
+/** Add sessions into a project map, merging if the project already exists. */
+function addToProjectMap(
+  map: Map<string, DiscoveredSession[]>,
+  projectName: string,
+  sessions: DiscoveredSession[],
+): void {
+  const existing = map.get(projectName);
+  if (existing) {
+    existing.push(...sessions);
+  } else {
+    map.set(projectName, [...sessions]);
+  }
+}
+
+/** Read the first line of a JSONL file and extract cwd from session_meta. */
+function readCodexCwd(filePath: string): string | null {
+  try {
+    const text = readFileSync(filePath, "utf-8");
+    const firstNewline = text.indexOf("\n");
+    const firstLine = firstNewline === -1 ? text : text.slice(0, firstNewline);
+    const obj = JSON.parse(firstLine);
+    if (obj.type === "session_meta" && obj.payload?.cwd) {
+      return basename(obj.payload.cwd);
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+/** Discover sessions across all supported agents, grouped by project. */
 export function discoverSessions() {
   const home = homedir();
-  const groups = [];
+  const projectMap = new Map<string, DiscoveredSession[]>();
 
   // Claude Code: ~/.claude/projects/<project>/*.jsonl
   const claudeBase = join(home, ".claude", "projects");
   try {
-    const projects = readdirSync(claudeBase).filter((d) => {
-      try {
-        return statSync(join(claudeBase, d)).isDirectory();
-      } catch {
-        return false;
-      }
-    });
-    const claudeGroup = { name: "Claude Code", projects: [] };
-    for (const proj of projects.sort()) {
+    for (const proj of readdirSync(claudeBase).sort()) {
       const projPath = join(claudeBase, proj);
+      try {
+        if (!statSync(projPath).isDirectory()) continue;
+      } catch {
+        continue;
+      }
       const files = readdirSync(projPath).filter((f) => f.endsWith(".jsonl"));
       if (files.length === 0) continue;
       const parts = proj.replace(/^-+/, "").split("-");
       const displayName =
         parts.length > 1 ? parts.slice(-2).join("-") : parts[0];
-      claudeGroup.projects.push({
-        name: displayName,
-        dirName: proj,
-        sessions: files
-          .map((f) => {
-            const fullPath = join(projPath, f);
-            let date = null;
-            try {
-              date = statSync(fullPath).mtime.toISOString();
-            } catch {
-              /* ignore */
-            }
-            return { file: f, path: fullPath, date };
-          })
-          .sort((a, b) => {
-            if (!a.date && !b.date) return 0;
-            if (!a.date) return 1;
-            if (!b.date) return -1;
-            return b.date.localeCompare(a.date);
-          }),
+      const sessions: DiscoveredSession[] = files.map((f) => {
+        const fullPath = join(projPath, f);
+        let date: string | null = null;
+        try {
+          date = statSync(fullPath).mtime.toISOString();
+        } catch {
+          /* ignore */
+        }
+        return { file: f, path: fullPath, date, source: "Claude Code" };
       });
+      addToProjectMap(projectMap, displayName, sessions);
     }
-    if (claudeGroup.projects.length > 0) groups.push(claudeGroup);
   } catch {
     /* directory doesn't exist */
   }
@@ -110,23 +144,15 @@ export function discoverSessions() {
   // Cursor: ~/.cursor/projects/<project>/agent-transcripts/<id>/transcript.jsonl
   const cursorBase = join(home, ".cursor", "projects");
   try {
-    const projects = readdirSync(cursorBase).filter((d) => {
-      try {
-        return statSync(join(cursorBase, d)).isDirectory();
-      } catch {
-        return false;
-      }
-    });
-    const cursorGroup = { name: "Cursor", projects: [] };
-    for (const proj of projects.sort()) {
+    for (const proj of readdirSync(cursorBase).sort()) {
       const transcriptsDir = join(cursorBase, proj, "agent-transcripts");
-      let ids;
+      let ids: string[];
       try {
         ids = readdirSync(transcriptsDir);
       } catch {
         continue;
       }
-      const cursorSessions = [];
+      const sessions: DiscoveredSession[] = [];
       for (const id of ids) {
         const idDir = join(transcriptsDir, id);
         try {
@@ -134,7 +160,6 @@ export function discoverSessions() {
         } catch {
           continue;
         }
-        // Try transcript.jsonl first, then <uuid>.jsonl
         let filePath = join(idDir, "transcript.jsonl");
         try {
           statSync(filePath);
@@ -148,30 +173,22 @@ export function discoverSessions() {
         }
         try {
           const stat = statSync(filePath);
-          cursorSessions.push({
+          sessions.push({
             file: id,
             path: filePath,
             date: stat.mtime.toISOString(),
+            source: "Cursor",
           });
-        } catch {}
+        } catch {
+          /* skip */
+        }
       }
-      if (cursorSessions.length === 0) continue;
-      cursorSessions.sort((a, b) => {
-        if (!a.date && !b.date) return 0;
-        if (!a.date) return 1;
-        if (!b.date) return -1;
-        return b.date.localeCompare(a.date);
-      });
+      if (sessions.length === 0) continue;
       const parts = proj.replace(/^-+/, "").split("-");
       const displayName =
         parts.length > 1 ? parts.slice(-2).join("-") : parts[0];
-      cursorGroup.projects.push({
-        name: displayName,
-        dirName: proj,
-        sessions: cursorSessions,
-      });
+      addToProjectMap(projectMap, displayName, sessions);
     }
-    if (cursorGroup.projects.length > 0) groups.push(cursorGroup);
   } catch {
     /* directory doesn't exist */
   }
@@ -179,7 +196,6 @@ export function discoverSessions() {
   // Gemini CLI: ~/.gemini/tmp/<projectHash>/chats/session-*.json
   const geminiBase = join(home, ".gemini", "tmp");
   try {
-    const geminiGroup = { name: "Gemini", projects: [] };
     for (const hashDir of readdirSync(geminiBase).sort()) {
       const chatsDir = join(geminiBase, hashDir, "chats");
       try {
@@ -192,29 +208,19 @@ export function discoverSessions() {
         .sort()
         .reverse();
       if (files.length === 0) continue;
-      geminiGroup.projects.push({
-        name: hashDir.slice(0, 12),
-        dirName: hashDir,
-        sessions: files
-          .map((f) => {
-            const fullPath = join(chatsDir, f);
-            let date = null;
-            try {
-              date = statSync(fullPath).mtime.toISOString();
-            } catch {
-              /* ignore */
-            }
-            return { file: f, path: fullPath, date };
-          })
-          .sort((a, b) => {
-            if (!a.date && !b.date) return 0;
-            if (!a.date) return 1;
-            if (!b.date) return -1;
-            return b.date.localeCompare(a.date);
-          }),
+      const displayName = hashDir.slice(0, 12);
+      const sessions: DiscoveredSession[] = files.map((f) => {
+        const fullPath = join(chatsDir, f);
+        let date: string | null = null;
+        try {
+          date = statSync(fullPath).mtime.toISOString();
+        } catch {
+          /* ignore */
+        }
+        return { file: f, path: fullPath, date, source: "Gemini" };
       });
+      addToProjectMap(projectMap, displayName, sessions);
     }
-    if (geminiGroup.projects.length > 0) groups.push(geminiGroup);
   } catch {
     /* directory doesn't exist */
   }
@@ -222,8 +228,6 @@ export function discoverSessions() {
   // Codex CLI: ~/.codex/sessions/<YYYY>/<MM>/<DD>/rollout-*.jsonl
   const codexBase = join(home, ".codex", "sessions");
   try {
-    const codexGroup = { name: "Codex", projects: [] };
-    // Walk year/month/day directories
     for (const year of readdirSync(codexBase).sort().reverse()) {
       const yearPath = join(codexBase, year);
       try {
@@ -250,24 +254,23 @@ export function discoverSessions() {
             .sort()
             .reverse();
           if (files.length === 0) continue;
-          codexGroup.projects.push({
-            name: `${year}-${month}-${day}`,
-            dirName: `${year}/${month}/${day}`,
-            sessions: files.map((f) => {
-              const fullPath = join(dayPath, f);
-              let date = null;
-              try {
-                date = statSync(fullPath).mtime.toISOString();
-              } catch {
-                /* ignore */
-              }
-              return { file: f, path: fullPath, date };
-            }),
-          });
+          for (const f of files) {
+            const fullPath = join(dayPath, f);
+            let date: string | null = null;
+            try {
+              date = statSync(fullPath).mtime.toISOString();
+            } catch {
+              /* ignore */
+            }
+            const projectName =
+              readCodexCwd(fullPath) || `${year}-${month}-${day}`;
+            addToProjectMap(projectMap, projectName, [
+              { file: f, path: fullPath, date, source: "Codex" },
+            ]);
+          }
         }
       }
     }
-    if (codexGroup.projects.length > 0) groups.push(codexGroup);
   } catch {
     /* directory doesn't exist */
   }
@@ -275,8 +278,6 @@ export function discoverSessions() {
   // Copilot: ~/.copilot/session-state/<uuid>/events.jsonl
   const copilotBase = join(home, ".copilot", "session-state");
   try {
-    const copilotGroup = { name: "Copilot", projects: [] };
-    const projectMap = new Map<string, { file: string; path: string; date: string | null }[]>();
     for (const id of readdirSync(copilotBase)) {
       const idDir = join(copilotBase, id);
       try {
@@ -296,7 +297,6 @@ export function discoverSessions() {
       } catch {
         /* ignore */
       }
-      // Try to extract project from workspace.yaml cwd field
       let projectKey = "Sessions";
       try {
         const yaml = readFileSync(join(idDir, "workspace.yaml"), "utf-8");
@@ -307,29 +307,30 @@ export function discoverSessions() {
       } catch {
         /* no workspace.yaml or unreadable */
       }
-      const existing = projectMap.get(projectKey);
-      if (existing) {
-        existing.push({ file: id, path: eventsPath, date });
-      } else {
-        projectMap.set(projectKey, [{ file: id, path: eventsPath, date }]);
-      }
+      addToProjectMap(projectMap, projectKey, [
+        { file: id, path: eventsPath, date, source: "Copilot" },
+      ]);
     }
-    for (const [projName, sessions] of [...projectMap.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-      sessions.sort((a, b) => {
-        if (!a.date && !b.date) return 0;
-        if (!a.date) return 1;
-        if (!b.date) return -1;
-        return b.date.localeCompare(a.date);
-      });
-      copilotGroup.projects.push({
-        name: projName,
-        dirName: projName,
-        sessions,
-      });
-    }
-    if (copilotGroup.projects.length > 0) groups.push(copilotGroup);
   } catch {
     /* directory doesn't exist */
+  }
+
+  // Build final groups sorted by project name
+  const groups = [];
+  for (const [projName, sessions] of [...projectMap.entries()].sort((a, b) =>
+    a[0].localeCompare(b[0]),
+  )) {
+    sortSessions(sessions);
+    groups.push({
+      name: projName,
+      projects: [
+        {
+          name: projName,
+          dirName: projName,
+          sessions,
+        },
+      ],
+    });
   }
 
   return groups;

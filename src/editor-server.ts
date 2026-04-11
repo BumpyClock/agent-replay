@@ -324,6 +324,7 @@ async function handleApi(req, res, pathname) {
               path: sess.path,
               date: sess.date,
               snippet,
+              source: sess.source,
             });
           } catch {
             /* skip unreadable files */
