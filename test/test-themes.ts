@@ -32,6 +32,7 @@ describe("listThemes", () => {
       "monokai",
       "solarized-dark",
       "tokyo-night",
+      "workstreams",
     ]);
   });
 });
