@@ -4,16 +4,18 @@ import { parseTranscript, parseTranscriptFromText, filterTurns, detectFormat, de
 import { writeFileSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { resolveFileUrlPath } from "./helpers/file-url-path.mjs";
 
-const FIXTURE = new URL("./fixture.jsonl", import.meta.url).pathname;
-const CURSOR_FIXTURE = new URL("./fixture-cursor.jsonl", import.meta.url).pathname;
-const CODEX_FIXTURE = new URL("./fixture-codex.jsonl", import.meta.url).pathname;
-const PACED_FIXTURE = new URL("./fixture-paced.jsonl", import.meta.url).pathname;
-const SYSTEM_TAGS_FIXTURE = new URL("./fixture-system-tags.jsonl", import.meta.url).pathname;
-const CODEX_PATCH_FIXTURE = new URL("./fixture-codex-patch.jsonl", import.meta.url).pathname;
-const CODEX_EDGES_FIXTURE = new URL("./fixture-codex-edges.jsonl", import.meta.url).pathname;
-const GEMINI_FIXTURE = new URL("./fixture-gemini.json", import.meta.url).pathname;
-const OPENCODE_FIXTURE = new URL("./fixture-opencode.jsonl", import.meta.url).pathname;
+const FIXTURE = resolveFileUrlPath("./fixture.jsonl", import.meta.url);
+const CURSOR_FIXTURE = resolveFileUrlPath("./fixture-cursor.jsonl", import.meta.url);
+const CODEX_FIXTURE = resolveFileUrlPath("./fixture-codex.jsonl", import.meta.url);
+const PACED_FIXTURE = resolveFileUrlPath("./fixture-paced.jsonl", import.meta.url);
+const SYSTEM_TAGS_FIXTURE = resolveFileUrlPath("./fixture-system-tags.jsonl", import.meta.url);
+const CODEX_PATCH_FIXTURE = resolveFileUrlPath("./fixture-codex-patch.jsonl", import.meta.url);
+const CODEX_EDGES_FIXTURE = resolveFileUrlPath("./fixture-codex-edges.jsonl", import.meta.url);
+const GEMINI_FIXTURE = resolveFileUrlPath("./fixture-gemini.json", import.meta.url);
+const OPENCODE_FIXTURE = resolveFileUrlPath("./fixture-opencode.jsonl", import.meta.url);
+const COPILOT_FIXTURE = resolveFileUrlPath("./fixture-copilot.jsonl", import.meta.url);
 
 describe("parseTranscript", () => {
   // Fixture produces 3 turns (orphan assistant after tool result merges into previous):
@@ -616,6 +618,91 @@ describe("OpenCode format", () => {
   });
 });
 
+describe("Copilot CLI format", () => {
+  it("detects copilot format", () => {
+    assert.equal(detectFormat(COPILOT_FIXTURE), "copilot");
+  });
+
+  it("does not confuse copilot with claude-code", () => {
+    assert.equal(detectFormat(FIXTURE), "claude-code");
+  });
+
+  it("does not confuse copilot with codex", () => {
+    assert.equal(detectFormat(CODEX_FIXTURE), "codex");
+  });
+
+  it("parses turns from Copilot session", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    // 3 user messages → 3 turns
+    assert.equal(turns.length, 3);
+  });
+
+  it("extracts user text, stripping system tags from transformedContent", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    assert.equal(turns[0].user_text, "list the files in src/");
+    assert.equal(turns[1].user_text, "read index.ts and fix the typo in it");
+    assert.equal(turns[2].user_text, "thanks!");
+  });
+
+  it("maps powershell tool to Bash with normalized input", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    const bash = turns[0].blocks.find((b) => b.kind === "tool_use" && b.tool_call.name === "Bash");
+    assert.ok(bash, "should have a Bash tool_use block");
+    assert.equal(bash.tool_call.input.command, "ls src/");
+    assert.match(bash.tool_call.result, /index\.ts/);
+  });
+
+  it("maps view tool to Read with normalized input", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    const read = turns[1].blocks.find((b) => b.kind === "tool_use" && b.tool_call.name === "Read");
+    assert.ok(read, "should have a Read tool_use block");
+    assert.match(read.tool_call.input.file_path, /index\.ts/);
+    assert.match(read.tool_call.result, /Helo/);
+  });
+
+  it("maps edit tool to Edit with normalized input", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    const edit = turns[1].blocks.find((b) => b.kind === "tool_use" && b.tool_call.name === "Edit");
+    assert.ok(edit, "should have an Edit tool_use block");
+    assert.match(edit.tool_call.input.file_path, /index\.ts/);
+    assert.equal(edit.tool_call.input.old_string, "  return `Helo, ${name}!`;");
+    assert.equal(edit.tool_call.input.new_string, "  return `Hello, ${name}!`;");
+  });
+
+  it("skips report_intent tool (internal)", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    const intent = turns[0].blocks.find((b) => b.kind === "tool_use" && b.tool_call?.name === "report_intent");
+    assert.equal(intent, undefined, "report_intent should be filtered out");
+  });
+
+  it("extracts reasoning as thinking blocks", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    const thinking = turns[0].blocks.filter((b) => b.kind === "thinking");
+    assert.equal(thinking.length, 1);
+    assert.match(thinking[0].text, /list them/);
+  });
+
+  it("extracts text blocks", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    const text = turns[0].blocks.filter((b) => b.kind === "text");
+    assert.ok(text.length >= 1);
+    assert.match(text[text.length - 1].text, /3 items/);
+  });
+
+  it("preserves timestamps", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    assert.equal(turns[0].timestamp, "2026-04-01T10:00:10.000Z");
+  });
+
+  it("assigns sequential turn indices", () => {
+    const turns = parseTranscript(COPILOT_FIXTURE);
+    assert.deepEqual(
+      turns.map((t) => t.index),
+      [1, 2, 3]
+    );
+  });
+});
+
 describe("Turn structure contract", () => {
   // Every format must produce turns matching the same shape.
   // This catches format parsers that forget fields or return wrong types.
@@ -625,6 +712,7 @@ describe("Turn structure contract", () => {
     { name: "codex", path: CODEX_FIXTURE },
     { name: "gemini", path: GEMINI_FIXTURE },
     { name: "opencode", path: OPENCODE_FIXTURE },
+    { name: "copilot", path: COPILOT_FIXTURE },
   ];
 
   for (const { name, path } of fixtures) {

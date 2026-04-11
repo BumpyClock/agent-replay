@@ -7,8 +7,9 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { parseTranscript, applyPacedTiming } from "../../src/parser.mjs";
 import { render } from "../../src/renderer.mjs";
+import { resolveFileUrlPath } from "../helpers/file-url-path.mjs";
 
-const FIXTURE = new URL("./fixture.jsonl", import.meta.url).pathname;
+const FIXTURE = resolveFileUrlPath("./fixture.jsonl", import.meta.url);
 const dir = mkdtempSync(join(tmpdir(), "claude-replay-e2e-"));
 const cache = {};
 

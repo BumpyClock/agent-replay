@@ -1,7 +1,7 @@
 import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { resolve, dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawn } from "node:child_process";
 import { writeFileSync, unlinkSync, existsSync } from "node:fs";
 import { tmpdir, homedir } from "node:os";
@@ -20,10 +20,10 @@ describe("editor-server API", () => {
     const port = 10000 + Math.floor(Math.random() * 50000);
     baseUrl = `http://127.0.0.1:${port}`;
 
-    const srcPath = resolve(__dirname, "..", "src", "editor-server.mjs").replace(/\\/g, "/");
+    const srcUrl = pathToFileURL(resolve(__dirname, "..", "src", "editor-server.mjs")).href;
     writeFileSync(
       HELPER_PATH,
-      `import { startEditor } from "${srcPath}";\nstartEditor(${port}, { open: false });\n`,
+      `import { startEditor } from "${srcUrl}";\nstartEditor(${port}, { open: false });\n`,
     );
 
     child = spawn(process.execPath, [HELPER_PATH], {

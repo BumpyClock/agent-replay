@@ -4,8 +4,9 @@ import { spawnSync } from "node:child_process";
 import { writeFileSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { resolveFileUrlPath } from "./helpers/file-url-path.mjs";
 
-const VALIDATOR = new URL("./validate-format.mjs", import.meta.url).pathname;
+const VALIDATOR = resolveFileUrlPath("./validate-format.mjs", import.meta.url);
 
 function run(format, lines) {
   const tmp = join(tmpdir(), `validate-test-${process.pid}-${Date.now()}.jsonl`);
