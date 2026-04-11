@@ -8,7 +8,7 @@ claude-replay uses a plugin-like architecture for format parsers. Each agent for
 
 ### Step 1: Create a format parser
 
-Create `src/formats/my-agent.mjs`:
+Create `src/formats/my-agent.ts`:
 
 ```js
 /**
@@ -17,7 +17,7 @@ Create `src/formats/my-agent.mjs`:
  * Format: describe the log format here (JSONL, JSON, etc.)
  */
 
-import { cleanSystemTags } from "./shared.mjs";
+import { cleanSystemTags } from "./shared.js";
 
 // Unique format name — used in detectFormat() return value and --format flag
 export const name = "my-agent";
@@ -28,7 +28,7 @@ export const name = "my-agent";
  * Return true if this format should handle it.
  *
  * For non-JSONL formats (e.g. single JSON object), export detectFromText(text)
- * instead — see gemini.mjs for an example.
+ * instead — see gemini.ts for an example.
  */
 export function detect(firstObj) {
   return firstObj.type === "my_agent_event";
@@ -47,10 +47,10 @@ export function parse(text) {
 
 ### Step 2: Register the format
 
-Add your format to `src/formats/index.mjs`:
+Add your format to `src/formats/index.ts`:
 
 ```js
-import * as myAgent from "./my-agent.mjs";
+import * as myAgent from "./my-agent.js";
 
 // Add to the formats array. Order matters for detection:
 // - More specific formats first (check unique fields)
@@ -83,7 +83,7 @@ Create `test/fixture-my-agent.jsonl` (or `.json`) with a minimal but representat
 
 ### Step 4: Add tests
 
-Add a test section in `test/test-parser.mjs`:
+Add a test section in `test/test-parser.ts`:
 
 ```js
 const MY_AGENT_FIXTURE = new URL("./fixture-my-agent.jsonl", import.meta.url).pathname;
@@ -161,7 +161,7 @@ Map your agent's tool names to the standard set used by the player:
 | `WebSearch` | Web search |
 | `WebFetch` | URL fetching |
 
-Use a tool map constant (see `gemini.mjs` or `opencode.mjs` for examples). Unknown tool names pass through as-is.
+Use a tool map constant (see `gemini.ts` or `opencode.ts` for examples). Unknown tool names pass through as-is.
 
 ### Input normalization
 
@@ -173,7 +173,7 @@ Normalize tool inputs so the player renders them consistently:
 
 ### Shared utilities
 
-`src/formats/shared.mjs` provides common helpers:
+`src/formats/shared.ts` provides common helpers:
 
 - `cleanSystemTags(text)` — strip system reminders, IDE context, command metadata
 - `extractText(content)` — handle string or block-array content
@@ -183,13 +183,14 @@ Normalize tool inputs so the player renders them consistently:
 - `buildTurnsFromEntries(entries)` — full turn-building loop for Claude Code-shaped JSONL
 - `filterEmptyTurns(turns)` — drop empty turns and re-index
 
-If your format uses JSONL with `{ type: "user"|"assistant", message: { content } }` entries (like Claude Code), you can use `buildTurnsFromEntries()` directly — see `claude-code.mjs` and `cursor.mjs`. For different structures (single JSON, event-based JSONL), you'll write your own parsing logic but can still use `cleanSystemTags()` and `filterEmptyTurns()` — see `gemini.mjs`, `codex.mjs`, and `opencode.mjs` for examples.
+If your format uses JSONL with `{ type: "user"|"assistant", message: { content } }` entries (like Claude Code), you can use `buildTurnsFromEntries()` directly — see `claude-code.ts` and `cursor.ts`. For different structures (single JSON, event-based JSONL), you'll write your own parsing logic but can still use `cleanSystemTags()` and `filterEmptyTurns()` — see `gemini.ts`, `codex.ts`, and `opencode.ts` for examples.
 
 ## Running Tests
 
 ```bash
-npm test              # All tests (unit + e2e)
-npm run build         # Build minified template
+npm test              # Unit tests
+npm run test:e2e      # Playwright e2e tests
+npm run build         # Build template + compile TypeScript
 ```
 
 ## Other Contributions
@@ -202,26 +203,29 @@ npm run build         # Build minified template
 
 ```
 src/
-  parser.mjs           # Public API — delegates to format parsers
+  parser.ts            # Public API — delegates to format parsers
+  types.ts             # Shared TypeScript type definitions
+  resolve-session.ts   # Session file lookup by ID or path
   formats/
-    index.mjs          # Format registry (detection + dispatch)
-    shared.mjs         # Shared utilities
-    claude-code.mjs    # Claude Code JSONL
-    cursor.mjs         # Cursor JSONL
-    codex.mjs          # Codex CLI (legacy + new format)
-    gemini.mjs         # Gemini CLI JSON
-    opencode.mjs       # OpenCode JSONL
-    replay.mjs         # Replay JSONL (our own extract format)
-  renderer.mjs         # Node.js HTML renderer (compression, file I/O)
-  browser.mjs          # Browser-compatible renderer (website)
-  themes.mjs           # Theme system
-  secrets.mjs          # Secret redaction
-  editor-server.mjs    # Editor HTTP server
-  extract.mjs          # JSONL export
+    index.ts           # Format registry (detection + dispatch)
+    shared.ts          # Shared utilities
+    claude-code.ts     # Claude Code JSONL
+    cursor.ts          # Cursor JSONL
+    copilot.ts         # Copilot CLI (event-sourced JSONL)
+    codex.ts           # Codex CLI (legacy + new format)
+    gemini.ts          # Gemini CLI JSON
+    opencode.ts        # OpenCode JSONL
+    replay.ts          # Replay JSONL (our own extract format)
+  renderer.ts          # Node.js HTML renderer (compression, file I/O)
+  browser.ts           # Browser-compatible renderer (website)
+  themes.ts            # Theme system
+  secrets.ts           # Secret redaction
+  editor-server.ts     # Editor HTTP server
+  extract.ts           # JSONL export
 template/
   player.html          # Self-contained HTML player template
 test/
-  test-parser.mjs      # Parser unit tests
-  test-cli.mjs         # CLI integration tests
+  test-parser.ts       # Parser unit tests
+  test-cli.ts          # CLI integration tests
   e2e/                 # Playwright e2e tests
 ```

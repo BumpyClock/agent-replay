@@ -793,16 +793,16 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
   <div class="topbar">
     <h1>claude-replay</h1>
     <input type="text" class="topbar-title-input" id="titleInput" placeholder="Session title..." disabled>
-    <button class="btn" id="resetBtn" disabled>Reset Edits</button>
-    <button class="btn" id="importHtmlBtn" title="Import a previously exported HTML replay for re-editing">Import HTML</button>
+    <button type="button" class="btn" id="resetBtn" disabled>Reset Edits</button>
+    <button type="button" class="btn" id="importHtmlBtn" title="Import a previously exported HTML replay for re-editing">Import HTML</button>
     <input type="file" id="importHtmlFile" accept=".html" style="display:none">
-    <button class="btn" id="exportDataBtn" disabled title="Download session data as JSON">Export JSON</button>
-    <button class="btn btn-primary" id="exportBtn" disabled>Export HTML</button>
-    <button class="btn theme-mode-btn" id="themeModeBtn" title="Toggle dark/light mode">
-      <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <button type="button" class="btn" id="exportDataBtn" disabled title="Download session data as JSON">Export JSON</button>
+    <button type="button" class="btn btn-primary" id="exportBtn" disabled>Export HTML</button>
+    <button type="button" class="btn theme-mode-btn" id="themeModeBtn" title="Toggle dark/light mode">
+      <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><title>Dark mode</title><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><title>Light mode</title><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
-    <button class="btn" id="helpBtn" title="Help">?</button>
+    <button type="button" class="btn" id="helpBtn" title="Help">?</button>
   </div>
 
   <!-- Left sidebar: Sessions + Options -->
@@ -888,7 +888,7 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
           <label title="Replace specific text in the output (e.g. usernames, paths)">Custom redact</label>
           <div style="flex:1">
             <div class="redact-rules" id="redactRules"></div>
-            <button class="add-rule-btn" id="addRuleBtn">+ Add rule</button>
+            <button type="button" class="add-rule-btn" id="addRuleBtn">+ Add rule</button>
           </div>
         </div>
 
@@ -918,10 +918,10 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
   <!-- Editor panel -->
   <div class="editor-panel">
     <div class="turns-toolbar" id="turnsToolbar">
-      <button class="btn btn-small" id="selectAllBtn" title="Include all turns in the replay">Include All</button>
-      <button class="btn btn-small" id="selectNoneBtn" title="Exclude all turns from the replay">Exclude All</button>
-      <button class="btn btn-small" id="expandAllBtn" title="Expand all assistant blocks">Expand All</button>
-      <button class="btn btn-small" id="collapseAllBtn" title="Collapse all assistant blocks">Collapse All</button>
+      <button type="button" class="btn btn-small" id="selectAllBtn" title="Include all turns in the replay">Include All</button>
+      <button type="button" class="btn btn-small" id="selectNoneBtn" title="Exclude all turns from the replay">Exclude All</button>
+      <button type="button" class="btn btn-small" id="expandAllBtn" title="Expand all assistant blocks">Expand All</button>
+      <button type="button" class="btn btn-small" id="collapseAllBtn" title="Collapse all assistant blocks">Collapse All</button>
       <span class="toolbar-hint">Shift+click for range select</span>
     </div>
     <div class="turns-list" id="turnsList">
@@ -937,17 +937,17 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
       <span>Preview</span>
       <span class="refresh-indicator" id="refreshIndicator">Refreshing...</span>
     </div>
-    <iframe class="preview-iframe" id="previewIframe"></iframe>
+    <iframe class="preview-iframe" id="previewIframe" title="Replay preview"></iframe>
   </div>
 </div>
-<button class="sidebar-edge-toggle" id="sidebarToggleBtn" title="Toggle sidebar">&#8249;</button>
+<button type="button" class="sidebar-edge-toggle" id="sidebarToggleBtn" title="Toggle sidebar">&#8249;</button>
 
 <!-- Help modal -->
 <div class="modal-overlay" id="helpModal">
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title">claude-replay editor</span>
-      <button class="modal-close" id="helpModalClose">&times;</button>
+      <button type="button" class="modal-close" id="helpModalClose">&times;</button>
     </div>
     <div class="modal-body">
       <h3>Getting Started</h3>
@@ -1008,15 +1008,15 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
     <div class="modal-body">
       <p id="confirmMessage"></p>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-        <button class="btn" id="confirmCancel">Cancel</button>
-        <button class="btn btn-warn" id="confirmOk">Reset</button>
+        <button type="button" class="btn" id="confirmCancel">Cancel</button>
+        <button type="button" class="btn btn-warn" id="confirmOk">Reset</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-(function() {
+(() => {
   // =========================================================================
   // Utilities
   // =========================================================================
@@ -1329,7 +1329,9 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
     });
     browseList.querySelectorAll("[data-path]").forEach((el) => {
       el.addEventListener("click", () => {
-        document.querySelectorAll(".session-item.active").forEach((s) => s.classList.remove("active"));
+        document.querySelectorAll(".session-item.active").forEach((s) => {
+          s.classList.remove("active");
+        });
         el.classList.add("selected");
         loadSession(el.dataset.path, null);
       });
@@ -1350,7 +1352,9 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
   }
 
   async function loadSession(path, itemEl) {
-    document.querySelectorAll(".session-item.active").forEach((el) => el.classList.remove("active"));
+    document.querySelectorAll(".session-item.active").forEach((el) => {
+      el.classList.remove("active");
+    });
     if (itemEl) itemEl.classList.add("active");
 
     try {
@@ -1474,7 +1478,10 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
     // Click on turn card header → jump preview to that turn
     const header = e.target.closest(".turn-card-header");
     if (header && !e.target.closest("input")) {
-      const index = parseInt(header.dataset.index || header.closest(".turn-card").dataset.index);
+      const index = parseInt(
+        header.dataset.index || header.closest(".turn-card").dataset.index,
+        10,
+      );
       if (index && previewIframe.contentWindow) {
         // Map original index to display position (preview uses sequential 1-based numbering)
         const included = currentTurns.filter((t) => !excludedTurns.has(t.index));
@@ -1506,7 +1513,7 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
 
   function handleTurnEvent(e) {
     const { action, index: rawIndex } = e.target.dataset;
-    const index = parseInt(rawIndex);
+    const index = parseInt(rawIndex, 10);
 
     if (action === "toggle") {
       const checked = e.target.checked;
@@ -1558,7 +1565,7 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
 
   function handleTurnInput(e) {
     const { action, index: rawIndex } = e.target.dataset;
-    const index = parseInt(rawIndex);
+    const index = parseInt(rawIndex, 10);
     if (action === "edit") debouncedEdit(currentSessionId, index, e.target.value);
     if (action === "bookmark-label" && bookmarks.has(index)) {
       bookmarks.set(index, e.target.value || `Turn ${index}`);
@@ -1583,7 +1590,7 @@ body.sidebar-collapsed .sidebar-edge-toggle { left: 16px; }
     row.innerHTML = `<input type="text" placeholder="Search text" value="${esc(search)}">
       <span class="arrow">&rarr;</span>
       <input type="text" placeholder="Replacement" value="${esc(replacement)}">
-      <button class="remove-rule">&times;</button>`;
+      <button type="button" class="remove-rule">&times;</button>`;
     redactRulesContainer.appendChild(row);
     row.querySelector(".remove-rule").addEventListener("click", () => { row.remove(); schedulePreview(); });
     row.querySelectorAll("input").forEach((inp) => {

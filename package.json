@@ -4,22 +4,28 @@
   "description": "Convert Claude Code, Cursor, and Codex session transcripts into self-contained, embeddable HTML replays",
   "type": "module",
   "bin": {
-    "claude-replay": "bin/claude-replay.mjs"
+    "claude-replay": "dist/bin/claude-replay.js"
   },
   "files": [
-    "bin/",
-    "src/",
-    "template/"
+    "dist/"
   ],
   "scripts": {
-    "build": "node scripts/build-template.mjs",
-    "build:website": "node scripts/build-template.mjs && node scripts/build-website.mjs",
-    "test": "node --test test/test-*.mjs",
-    "test:e2e": "npx playwright test"
+    "build": "tsx scripts/build-template.ts && tsc -p tsconfig.json && tsx scripts/copy-dist-assets.ts",
+    "build:website": "npm run build && tsx scripts/build-website.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "doctor": "npm run format && npm run lint",
+    "test": "node --import tsx --test test/test-*.ts",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.11",
+    "@types/node": "^25.6.0",
     "@playwright/test": "^1.58.2",
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
   },
   "engines": {
     "node": ">=18"

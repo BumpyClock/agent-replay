@@ -1,0 +1,80 @@
+/**
+ * Generate HTML replays from the e2e fixture for Playwright tests.
+ */
+
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { applyPacedTiming, parseTranscript } from "../../src/parser.js";
+import { render } from "../../src/renderer.js";
+import { resolveFileUrlPath } from "../helpers/file-url-path.js";
+
+const FIXTURE = resolveFileUrlPath("./fixture.jsonl", import.meta.url);
+const dir = mkdtempSync(join(tmpdir(), "claude-replay-e2e-"));
+const cache: Record<string, string> = {};
+
+function buildHtml(key, renderOpts) {
+  if (!cache[key]) {
+    const turns = parseTranscript(FIXTURE);
+    const hasRealTimestamps = turns.some((t) => t.timestamp);
+    const html = render(turns, {
+      title: "E2E Test",
+      minified: false,
+      redactSecrets: false,
+      hasRealTimestamps,
+      ...renderOpts,
+    });
+    const path = join(dir, key + ".html");
+    writeFileSync(path, html);
+    cache[key] = path;
+  }
+  return cache[key];
+}
+
+export function getFileUrl(hash = "") {
+  return "file://" + buildHtml("default", {}) + (hash ? "#" + hash : "");
+}
+
+export function getUncompressedFileUrl(hash = "") {
+  return (
+    "file://" +
+    buildHtml("uncompressed", { compress: false }) +
+    (hash ? "#" + hash : "")
+  );
+}
+
+export function getPacedFileUrl(hash = "") {
+  if (!cache.paced) {
+    const turns = parseTranscript(FIXTURE);
+    applyPacedTiming(turns);
+    const html = render(turns, {
+      title: "E2E Paced Test",
+      minified: false,
+      redactSecrets: false,
+      hasRealTimestamps: false,
+    });
+    const path = join(dir, "paced.html");
+    writeFileSync(path, html);
+    cache.paced = path;
+  }
+  return "file://" + cache.paced + (hash ? "#" + hash : "");
+}
+
+export function getChapterFileUrl(hash = "") {
+  return (
+    "file://" +
+    buildHtml("chapters", {
+      bookmarks: [
+        { turn: 1, label: "Scan devices" },
+        { turn: 2, label: "Connect" },
+        { turn: 5, label: "Wrap up" },
+      ],
+    }) +
+    (hash ? "#" + hash : "")
+  );
+}
+
+/** Wait for the player to finish initialization. */
+export async function waitForReady(page) {
+  await page.waitForSelector('body[data-ready="1"]', { timeout: 5000 });
+}

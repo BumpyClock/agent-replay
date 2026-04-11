@@ -5,6 +5,7 @@
 ![Cursor](https://img.shields.io/badge/Cursor-replay-purple)
 ![Codex CLI](https://img.shields.io/badge/Codex_CLI-replay-green)
 ![Gemini CLI](https://img.shields.io/badge/Gemini_CLI-replay-orange)
+![Copilot CLI](https://img.shields.io/badge/Copilot_CLI-replay-cyan)
 ![OpenCode](https://img.shields.io/badge/OpenCode-replay-red)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Node.js](https://img.shields.io/badge/node-18%2B-green.svg)
@@ -14,18 +15,19 @@
 
 AI coding sessions are great for development, but hard to share. Screen recordings are bulky and transcripts are hard to navigate.
 
-**claude-replay** turns Claude Code, Cursor, Codex CLI, Gemini CLI, and OpenCode session logs into interactive, shareable HTML replays. The generated replay is a single self-contained HTML file with no external dependencies — you can email it, host it anywhere, or embed it in documentation. Use `--serve --watch` to monitor agent sessions live as they run.
+**claude-replay** turns Claude Code, Copilot CLI, Cursor, Codex CLI, Gemini CLI, and OpenCode session logs into interactive, shareable HTML replays. The generated replay is a single self-contained HTML file with no external dependencies — you can email it, host it anywhere, or embed it in documentation. Use `--serve --watch` to monitor agent sessions live as they run.
 
 ![Demo](https://raw.githubusercontent.com/es617/claude-replay/main/docs/demo.gif)
 
 **[Try it online](https://es617.github.io/claude-replay/)** · **[Live demo](https://es617.github.io/claude-replay/demo-redaction.html)**
 
-Claude Code, Cursor, Codex CLI, Gemini CLI, and OpenCode store conversation transcripts on disk. **claude-replay** auto-detects the format and converts them into visual replays suitable for blog posts, demos, and documentation.
+Claude Code, Copilot CLI, Cursor, Codex CLI, Gemini CLI, and OpenCode store conversation transcripts on disk. **claude-replay** auto-detects the format and converts them into visual replays suitable for blog posts, demos, and documentation.
 
 | Source | Transcript location |
 |---|---|
 | Claude Code | `~/.claude/projects/<project>/` |
 | Cursor | `~/.cursor/projects/<project>/agent-transcripts/<id>/` |
+| Copilot CLI | `~/.copilot/session-state/<uuid>/events.jsonl` |
 | Codex CLI | `~/.codex/sessions/<date>/` |
 | Gemini CLI | `~/.gemini/tmp/<projectHash>/chats/` |
 | OpenCode | Export via `opencode export <sessionID>` |
@@ -113,6 +115,14 @@ Cursor transcripts are also supported — the format is auto-detected. Cursor tr
 
 ```bash
 claude-replay ~/.cursor/projects/*/agent-transcripts/<id>/<id>.jsonl -o replay.html
+```
+
+### Copilot CLI
+
+GitHub Copilot CLI (VS Code agent mode) transcripts are supported — the format is auto-detected. Copilot stores event-sourced JSONL sessions in `~/.copilot/session-state/<uuid>/events.jsonl`. Tool calls (`powershell`, `view`, `edit`, `create`, `glob`, `grep`) are mapped to their Claude Code equivalents for consistent rendering. Reasoning text is rendered as thinking blocks. Internal tools (`report_intent`, `sql`, `task_complete`) are filtered out.
+
+```bash
+claude-replay ~/.copilot/session-state/<uuid>/events.jsonl -o replay.html
 ```
 
 ### Codex CLI
@@ -411,11 +421,13 @@ Generated HTML files use two layers of optimization (zero external dependencies)
 
 ### Development
 
-To rebuild the minified template after editing `template/player.html`:
-
 ```bash
-npm install    # installs esbuild (devDependency)
-npm run build  # generates template/player.min.html
+npm install         # install dev dependencies
+npm run build       # build template + compile TypeScript to dist/
+npm run typecheck   # type-check without emitting
+npm run doctor      # auto-format then lint (Biome)
+npm test            # unit tests
+npm run test:e2e    # Playwright e2e tests
 ```
 
 The minified template is built in CI and included in npm releases. Without it, the CLI falls back to the unminified template automatically.
@@ -452,6 +464,10 @@ One JSON object per line with a `type` field (`user`, `assistant`, `system`, `pr
 
 One JSON object per line with a top-level `role` field. No timestamps. Thinking appears as inline text. The format is auto-detected — no flags needed.
 
+### Copilot CLI
+
+Event-sourced JSONL from `~/.copilot/session-state/<uuid>/events.jsonl`. Each line has `{ type, data, id, timestamp, parentId }`. Key event types: `session.start`, `user.message`, `assistant.message` (with `toolRequests[]` and `reasoningText`), `tool.execution_start`/`tool.execution_complete`. Tool names (`powershell`, `view`, `edit`, `create`, `glob`, `grep`) are mapped to Claude Code equivalents. Internal tools are filtered. The format is auto-detected — no flags needed.
+
 ### Codex CLI
 
 Event-based JSONL with typed events (`session_meta`, `response_item`, `event_msg`, etc.). Includes timestamps. Tool calls (`exec_command`, `apply_patch`) are mapped to Claude Code equivalents for consistent rendering. Codex's encrypted reasoning blocks are skipped; commentary messages are shown as thinking blocks. The format is auto-detected — no flags needed.
@@ -463,7 +479,7 @@ Single JSON file with a `sessionId` field and a `messages` array containing `use
 ## Requirements
 
 - Node.js 18+
-- Zero runtime dependencies (esbuild is a dev-only dependency for building the minified template)
+- Zero runtime dependencies (dev dependencies are build tooling only: TypeScript, Biome, esbuild, tsx)
 
 ## Privacy
 
