@@ -5,9 +5,9 @@
  * browse and sessions API routes.
  */
 
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join, resolve, sep } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 
 /** Ensure a path is under $HOME to prevent filesystem traversal. */
 export function assertUnderHome(targetPath: string): string {
@@ -268,6 +268,66 @@ export function discoverSessions() {
       }
     }
     if (codexGroup.projects.length > 0) groups.push(codexGroup);
+  } catch {
+    /* directory doesn't exist */
+  }
+
+  // Copilot: ~/.copilot/session-state/<uuid>/events.jsonl
+  const copilotBase = join(home, ".copilot", "session-state");
+  try {
+    const copilotGroup = { name: "Copilot", projects: [] };
+    const projectMap = new Map<string, { file: string; path: string; date: string | null }[]>();
+    for (const id of readdirSync(copilotBase)) {
+      const idDir = join(copilotBase, id);
+      try {
+        if (!statSync(idDir).isDirectory()) continue;
+      } catch {
+        continue;
+      }
+      const eventsPath = join(idDir, "events.jsonl");
+      try {
+        statSync(eventsPath);
+      } catch {
+        continue;
+      }
+      let date: string | null = null;
+      try {
+        date = statSync(eventsPath).mtime.toISOString();
+      } catch {
+        /* ignore */
+      }
+      // Try to extract project from workspace.yaml cwd field
+      let projectKey = "Sessions";
+      try {
+        const yaml = readFileSync(join(idDir, "workspace.yaml"), "utf-8");
+        const cwdMatch = yaml.match(/^cwd:\s*(.+)/m);
+        if (cwdMatch) {
+          projectKey = basename(cwdMatch[1].trim());
+        }
+      } catch {
+        /* no workspace.yaml or unreadable */
+      }
+      const existing = projectMap.get(projectKey);
+      if (existing) {
+        existing.push({ file: id, path: eventsPath, date });
+      } else {
+        projectMap.set(projectKey, [{ file: id, path: eventsPath, date }]);
+      }
+    }
+    for (const [projName, sessions] of [...projectMap.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+      sessions.sort((a, b) => {
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return b.date.localeCompare(a.date);
+      });
+      copilotGroup.projects.push({
+        name: projName,
+        dirName: projName,
+        sessions,
+      });
+    }
+    if (copilotGroup.projects.length > 0) groups.push(copilotGroup);
   } catch {
     /* directory doesn't exist */
   }
