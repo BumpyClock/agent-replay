@@ -46,38 +46,46 @@ export function TurnsPanel({
         className={`turns-toolbar ${turns.length > 0 ? "visible" : ""}`}
         id="turnsToolbar"
       >
-        <button
-          className="btn btn-small"
-          id="selectAllBtn"
-          onClick={onSelectAll}
-          type="button"
-        >
-          Include All
-        </button>
-        <button
-          className="btn btn-small"
-          id="selectNoneBtn"
-          onClick={onSelectNone}
-          type="button"
-        >
-          Exclude All
-        </button>
-        <button
-          className="btn btn-small"
-          id="expandAllBtn"
-          onClick={onExpandAll}
-          type="button"
-        >
-          Expand All
-        </button>
-        <button
-          className="btn btn-small"
-          id="collapseAllBtn"
-          onClick={onCollapseAll}
-          type="button"
-        >
-          Collapse All
-        </button>
+        <div className="turns-toolbar-meta">
+          <span className="turns-toolbar-eyebrow">editor</span>
+          <span className="turns-toolbar-title">
+            {turns.length > 0 ? `${turns.length} turns` : "turns"}
+          </span>
+        </div>
+        <div className="turns-toolbar-actions">
+          <button
+            className="btn btn-small"
+            id="selectAllBtn"
+            onClick={onSelectAll}
+            type="button"
+          >
+            Include All
+          </button>
+          <button
+            className="btn btn-small"
+            id="selectNoneBtn"
+            onClick={onSelectNone}
+            type="button"
+          >
+            Exclude All
+          </button>
+          <button
+            className="btn btn-small"
+            id="expandAllBtn"
+            onClick={onExpandAll}
+            type="button"
+          >
+            Expand All
+          </button>
+          <button
+            className="btn btn-small"
+            id="collapseAllBtn"
+            onClick={onCollapseAll}
+            type="button"
+          >
+            Collapse All
+          </button>
+        </div>
         <span className="toolbar-hint">Shift+click for range select</span>
       </div>
       <div className="turns-list" id="turnsList">

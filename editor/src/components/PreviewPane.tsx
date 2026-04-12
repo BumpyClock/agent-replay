@@ -14,7 +14,10 @@ export function PreviewPane({
   return (
     <div className="preview-panel">
       <div className="preview-header">
-        <span>Preview</span>
+        <div className="preview-header-copy">
+          <span className="preview-eyebrow">render</span>
+          <span className="preview-title">Preview</span>
+        </div>
         <span
           className={`refresh-indicator ${refreshing ? "active" : ""}`}
           id="refreshIndicator"

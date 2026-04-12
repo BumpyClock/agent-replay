@@ -17,8 +17,11 @@
     "dev:cli": "node --import tsx bin/claude-replay.ts",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "doctor": "bun run format && bun run lint",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "doctor": "bun run fix && bun run check",
     "test": "node --import tsx --test test/test-*.ts",
     "test:e2e": "playwright test"
   },
@@ -32,6 +35,7 @@
     "esbuild": "^0.25.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
+    "ultracite": "^7.4.2",
     "vite": "^8.0.8"
   },
   "engines": {

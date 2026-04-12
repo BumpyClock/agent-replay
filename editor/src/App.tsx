@@ -35,7 +35,7 @@ import {
 
 const api = createEditorApiClient();
 
-const EXPANDED_SIDEBAR_WIDTH = 280;
+const EXPANDED_SIDEBAR_WIDTH = 256;
 const COLLAPSED_SIDEBAR_WIDTH = 16;
 const RESIZE_HANDLE_WIDTH = 12;
 const MIN_EDITOR_WIDTH = 320;
@@ -121,7 +121,7 @@ export function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
-  const [colorMode, setColorMode] = useState<"dark" | "light">("dark");
+  const [colorMode, setColorMode] = useState<"dark" | "light">("light");
   const [editorWidth, setEditorWidth] = useState(520);
   const [isResizing, setIsResizing] = useState(false);
 
@@ -645,6 +645,10 @@ export function App() {
     <div
       className={`editor-shell ${colorMode} ${sidebarCollapsed ? "sidebar-collapsed" : ""} ${isResizing ? "is-resizing" : ""}`}
     >
+      <div aria-hidden="true" className="editor-blob editor-blob-1" />
+      <div aria-hidden="true" className="editor-blob editor-blob-2" />
+      <div aria-hidden="true" className="editor-blob editor-blob-3" />
+      <div aria-hidden="true" className="grain-layer" />
       <input
         hidden
         id="importHtmlFile"

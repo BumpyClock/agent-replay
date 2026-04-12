@@ -9,7 +9,8 @@
       "!template/editor-app.css",
       "!template/assets",
       "!template/player.html",
-      "!template/player.min.html"
+      "!template/player.min.html",
+      "!test-results"
     ]
   },
   "formatter": {

@@ -426,7 +426,9 @@ bun install         # install dev dependencies
 bun run dev         # launch editor server with Vite-backed React editor
 bun run build       # build editor assets, minify player template, compile TS to dist/
 bun run typecheck   # type-check without emitting
-bun run doctor      # auto-format then lint (Biome)
+bun run check       # verify formatting + lint rules (Ultracite/Biome)
+bun run fix         # apply Ultracite/Biome fixes
+bun run doctor      # auto-fix then re-check
 bun run test        # unit tests
 bun run test:e2e    # Playwright e2e tests
 ```

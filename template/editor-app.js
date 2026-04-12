@@ -8127,7 +8127,16 @@ function _({ previewUrl: e, refreshing: t, iframeRef: n }) {
 		className: "preview-panel",
 		children: [/* @__PURE__ */ (0, h.jsxs)("div", {
 			className: "preview-header",
-			children: [/* @__PURE__ */ (0, h.jsx)("span", { children: "Preview" }), /* @__PURE__ */ (0, h.jsx)("span", {
+			children: [/* @__PURE__ */ (0, h.jsxs)("div", {
+				className: "preview-header-copy",
+				children: [/* @__PURE__ */ (0, h.jsx)("span", {
+					className: "preview-eyebrow",
+					children: "render"
+				}), /* @__PURE__ */ (0, h.jsx)("span", {
+					className: "preview-title",
+					children: "Preview"
+				})]
+			}), /* @__PURE__ */ (0, h.jsx)("span", {
 				className: `refresh-indicator ${t ? "active" : ""}`,
 				id: "refreshIndicator",
 				children: "Refreshing..."
@@ -8276,7 +8285,20 @@ function b({ collapsed: e, sessionsOpen: t, optionsOpen: n, browseOpen: r, sessi
 			children: [
 				/* @__PURE__ */ (0, h.jsx)("div", {
 					className: "topbar-left",
-					children: /* @__PURE__ */ (0, h.jsx)("h1", { children: "claude-replay editor" })
+					children: /* @__PURE__ */ (0, h.jsxs)("div", {
+						className: "topbar-brand",
+						children: [/* @__PURE__ */ (0, h.jsx)("div", {
+							"aria-hidden": "true",
+							className: "topbar-brand-icon",
+							children: "►"
+						}), /* @__PURE__ */ (0, h.jsxs)("div", {
+							className: "topbar-brand-copy",
+							children: [/* @__PURE__ */ (0, h.jsx)("div", {
+								className: "topbar-eyebrow",
+								children: "editor workspace"
+							}), /* @__PURE__ */ (0, h.jsx)("h1", { children: "claude-replay" })]
+						})]
+					})
 				}),
 				/* @__PURE__ */ (0, h.jsx)("div", {
 					className: "topbar-center",
@@ -8292,50 +8314,60 @@ function b({ collapsed: e, sessionsOpen: t, optionsOpen: n, browseOpen: r, sessi
 				/* @__PURE__ */ (0, h.jsxs)("div", {
 					className: "topbar-right",
 					children: [
-						/* @__PURE__ */ (0, h.jsx)("button", {
-							className: `btn ${y ? "btn-warn" : ""}`,
-							disabled: !_,
-							id: "resetBtn",
-							onClick: ne,
-							type: "button",
-							children: "Reset"
+						/* @__PURE__ */ (0, h.jsxs)("div", {
+							className: "topbar-actions-group",
+							children: [
+								/* @__PURE__ */ (0, h.jsx)("button", {
+									className: `btn ${y ? "btn-warn" : ""}`,
+									disabled: !_,
+									id: "resetBtn",
+									onClick: ne,
+									type: "button",
+									children: "Reset"
+								}),
+								/* @__PURE__ */ (0, h.jsx)("button", {
+									className: "btn",
+									disabled: !_,
+									id: "exportDataBtn",
+									onClick: w,
+									type: "button",
+									children: "Export JSON"
+								}),
+								/* @__PURE__ */ (0, h.jsx)("button", {
+									className: "btn btn-primary",
+									disabled: !_,
+									id: "exportBtn",
+									onClick: re,
+									type: "button",
+									children: "Export HTML"
+								})
+							]
 						}),
-						/* @__PURE__ */ (0, h.jsx)("button", {
-							className: "btn",
-							disabled: !_,
-							id: "exportDataBtn",
-							onClick: w,
-							type: "button",
-							children: "Export JSON"
-						}),
-						/* @__PURE__ */ (0, h.jsx)("button", {
-							className: "btn btn-primary",
-							disabled: !_,
-							id: "exportBtn",
-							onClick: re,
-							type: "button",
-							children: "Export HTML"
-						}),
-						/* @__PURE__ */ (0, h.jsx)("button", {
-							className: "btn",
-							id: "importHtmlBtn",
-							onClick: ie,
-							type: "button",
-							children: "Import HTML"
-						}),
-						/* @__PURE__ */ (0, h.jsx)("button", {
-							className: "btn theme-mode-btn",
-							id: "themeModeBtn",
-							onClick: C,
-							type: "button",
-							children: b === "dark" ? "Light" : "Dark"
-						}),
-						/* @__PURE__ */ (0, h.jsx)("button", {
-							className: "btn",
-							id: "helpBtn",
-							onClick: te,
-							type: "button",
-							children: "Help"
+						/* @__PURE__ */ (0, h.jsxs)("div", {
+							className: "topbar-actions-group topbar-actions-group-secondary",
+							children: [
+								/* @__PURE__ */ (0, h.jsx)("button", {
+									className: "btn",
+									id: "importHtmlBtn",
+									onClick: ie,
+									type: "button",
+									children: "Import HTML"
+								}),
+								/* @__PURE__ */ (0, h.jsx)("button", {
+									className: "btn theme-mode-btn",
+									id: "themeModeBtn",
+									onClick: C,
+									type: "button",
+									children: b === "dark" ? "Light" : "Dark"
+								}),
+								/* @__PURE__ */ (0, h.jsx)("button", {
+									className: "btn",
+									id: "helpBtn",
+									onClick: te,
+									type: "button",
+									children: "Help"
+								})
+							]
 						}),
 						/* @__PURE__ */ (0, h.jsx)("span", {
 							className: "topbar-version",
@@ -8857,33 +8889,48 @@ function oe({ turns: e, excludedTurns: t, bookmarks: n, expandedTurns: r, expand
 			className: `turns-toolbar ${e.length > 0 ? "visible" : ""}`,
 			id: "turnsToolbar",
 			children: [
-				/* @__PURE__ */ (0, h.jsx)("button", {
-					className: "btn btn-small",
-					id: "selectAllBtn",
-					onClick: o,
-					type: "button",
-					children: "Include All"
+				/* @__PURE__ */ (0, h.jsxs)("div", {
+					className: "turns-toolbar-meta",
+					children: [/* @__PURE__ */ (0, h.jsx)("span", {
+						className: "turns-toolbar-eyebrow",
+						children: "editor"
+					}), /* @__PURE__ */ (0, h.jsx)("span", {
+						className: "turns-toolbar-title",
+						children: e.length > 0 ? `${e.length} turns` : "turns"
+					})]
 				}),
-				/* @__PURE__ */ (0, h.jsx)("button", {
-					className: "btn btn-small",
-					id: "selectNoneBtn",
-					onClick: s,
-					type: "button",
-					children: "Exclude All"
-				}),
-				/* @__PURE__ */ (0, h.jsx)("button", {
-					className: "btn btn-small",
-					id: "expandAllBtn",
-					onClick: c,
-					type: "button",
-					children: "Expand All"
-				}),
-				/* @__PURE__ */ (0, h.jsx)("button", {
-					className: "btn btn-small",
-					id: "collapseAllBtn",
-					onClick: l,
-					type: "button",
-					children: "Collapse All"
+				/* @__PURE__ */ (0, h.jsxs)("div", {
+					className: "turns-toolbar-actions",
+					children: [
+						/* @__PURE__ */ (0, h.jsx)("button", {
+							className: "btn btn-small",
+							id: "selectAllBtn",
+							onClick: o,
+							type: "button",
+							children: "Include All"
+						}),
+						/* @__PURE__ */ (0, h.jsx)("button", {
+							className: "btn btn-small",
+							id: "selectNoneBtn",
+							onClick: s,
+							type: "button",
+							children: "Exclude All"
+						}),
+						/* @__PURE__ */ (0, h.jsx)("button", {
+							className: "btn btn-small",
+							id: "expandAllBtn",
+							onClick: c,
+							type: "button",
+							children: "Expand All"
+						}),
+						/* @__PURE__ */ (0, h.jsx)("button", {
+							className: "btn btn-small",
+							id: "collapseAllBtn",
+							onClick: l,
+							type: "button",
+							children: "Collapse All"
+						})
+					]
 				}),
 				/* @__PURE__ */ (0, h.jsx)("span", {
 					className: "toolbar-hint",
@@ -9042,7 +9089,7 @@ var T = {
 	compress: !0,
 	excludeTurns: [],
 	bookmarks: []
-}, le = p(), E = 280, D = 16, ue = 12, de = 320, fe = 360;
+}, le = p(), E = 256, D = 16, ue = 12, de = 320, fe = 360;
 async function pe(e, t) {
 	let n = await e.blob(), r = URL.createObjectURL(n), i = document.createElement("a");
 	i.href = r, i.download = e.headers.get("content-disposition")?.match(/filename="([^"]+)"/)?.[1] || t, document.body.appendChild(i), i.click(), i.remove(), URL.revokeObjectURL(r);
@@ -9063,7 +9110,7 @@ function O() {
 		timing: T.timing,
 		minified: T.minified,
 		compress: T.compress
-	}), [Je, Ye] = (0, l.useState)(null), [Xe, Ze] = (0, l.useState)(!1), [Qe, $e] = (0, l.useState)(!1), [et, tt] = (0, l.useState)(!1), [nt, rt] = (0, l.useState)("dark"), [it, at] = (0, l.useState)(520), [ot, st] = (0, l.useState)(!1), ct = (0, l.useDeferredValue)(_e), lt = He || Pe.size > 0 || Ie.size > 0, ut = y ? D : E, dt = (0, l.useEffectEvent)(() => ({
+	}), [Je, Ye] = (0, l.useState)(null), [Xe, Ze] = (0, l.useState)(!1), [Qe, $e] = (0, l.useState)(!1), [et, tt] = (0, l.useState)(!1), [nt, rt] = (0, l.useState)("light"), [it, at] = (0, l.useState)(520), [ot, st] = (0, l.useState)(!1), ct = (0, l.useDeferredValue)(_e), lt = He || Pe.size > 0 || Ie.size > 0, ut = y ? D : E, dt = (0, l.useEffectEvent)(() => ({
 		...Ke,
 		title: We || T.title,
 		excludeTurns: Array.from(Pe),
@@ -9307,6 +9354,22 @@ function O() {
 	return /* @__PURE__ */ (0, h.jsxs)("div", {
 		className: `editor-shell ${nt} ${y ? "sidebar-collapsed" : ""} ${ot ? "is-resizing" : ""}`,
 		children: [
+			/* @__PURE__ */ (0, h.jsx)("div", {
+				"aria-hidden": "true",
+				className: "editor-blob editor-blob-1"
+			}),
+			/* @__PURE__ */ (0, h.jsx)("div", {
+				"aria-hidden": "true",
+				className: "editor-blob editor-blob-2"
+			}),
+			/* @__PURE__ */ (0, h.jsx)("div", {
+				"aria-hidden": "true",
+				className: "editor-blob editor-blob-3"
+			}),
+			/* @__PURE__ */ (0, h.jsx)("div", {
+				"aria-hidden": "true",
+				className: "grain-layer"
+			}),
 			/* @__PURE__ */ (0, h.jsx)("input", {
 				hidden: !0,
 				id: "importHtmlFile",

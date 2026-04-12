@@ -132,7 +132,15 @@ export function SessionSidebar({
     <>
       <div className="topbar">
         <div className="topbar-left">
-          <h1>claude-replay editor</h1>
+          <div className="topbar-brand">
+            <div aria-hidden="true" className="topbar-brand-icon">
+              &#9658;
+            </div>
+            <div className="topbar-brand-copy">
+              <div className="topbar-eyebrow">editor workspace</div>
+              <h1>claude-replay</h1>
+            </div>
+          </div>
         </div>
         <div className="topbar-center">
           <input
@@ -145,57 +153,61 @@ export function SessionSidebar({
           />
         </div>
         <div className="topbar-right">
-          <button
-            className={`btn ${hasChanges ? "btn-warn" : ""}`}
-            disabled={!currentSessionLoaded}
-            id="resetBtn"
-            onClick={onReset}
-            type="button"
-          >
-            Reset
-          </button>
-          <button
-            className="btn"
-            disabled={!currentSessionLoaded}
-            id="exportDataBtn"
-            onClick={onExportData}
-            type="button"
-          >
-            Export JSON
-          </button>
-          <button
-            className="btn btn-primary"
-            disabled={!currentSessionLoaded}
-            id="exportBtn"
-            onClick={onExport}
-            type="button"
-          >
-            Export HTML
-          </button>
-          <button
-            className="btn"
-            id="importHtmlBtn"
-            onClick={onImportHtml}
-            type="button"
-          >
-            Import HTML
-          </button>
-          <button
-            className="btn theme-mode-btn"
-            id="themeModeBtn"
-            onClick={onToggleColorMode}
-            type="button"
-          >
-            {colorMode === "dark" ? "Light" : "Dark"}
-          </button>
-          <button
-            className="btn"
-            id="helpBtn"
-            onClick={onHelpOpen}
-            type="button"
-          >
-            Help
-          </button>
+          <div className="topbar-actions-group">
+            <button
+              className={`btn ${hasChanges ? "btn-warn" : ""}`}
+              disabled={!currentSessionLoaded}
+              id="resetBtn"
+              onClick={onReset}
+              type="button"
+            >
+              Reset
+            </button>
+            <button
+              className="btn"
+              disabled={!currentSessionLoaded}
+              id="exportDataBtn"
+              onClick={onExportData}
+              type="button"
+            >
+              Export JSON
+            </button>
+            <button
+              className="btn btn-primary"
+              disabled={!currentSessionLoaded}
+              id="exportBtn"
+              onClick={onExport}
+              type="button"
+            >
+              Export HTML
+            </button>
+          </div>
+          <div className="topbar-actions-group topbar-actions-group-secondary">
+            <button
+              className="btn"
+              id="importHtmlBtn"
+              onClick={onImportHtml}
+              type="button"
+            >
+              Import HTML
+            </button>
+            <button
+              className="btn theme-mode-btn"
+              id="themeModeBtn"
+              onClick={onToggleColorMode}
+              type="button"
+            >
+              {colorMode === "dark" ? "Light" : "Dark"}
+            </button>
+            <button
+              className="btn"
+              id="helpBtn"
+              onClick={onHelpOpen}
+              type="button"
+            >
+              Help
+            </button>
+          </div>
           <span className="topbar-version" id="helpVersion">
             {version ? `v${version}` : ""}
           </span>
