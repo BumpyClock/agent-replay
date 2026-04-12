@@ -49,9 +49,9 @@ test("clicking turn header updates preview hash", async ({ page }) => {
   await page.waitForTimeout(500);
   await page.locator('.turn-card[data-index="3"] .turn-label').click();
   await page.waitForFunction(() => {
-    const iframe = document.getElementById("previewIframe") as
-      | HTMLIFrameElement
-      | null;
+    const iframe = document.getElementById(
+      "previewIframe",
+    ) as HTMLIFrameElement | null;
     return iframe?.contentWindow?.location.hash === "#turn=3";
   });
 

@@ -5,7 +5,7 @@
  * recognises Claude Code, Copilot, Codex, and generic message formats.
  */
 
-import { openSync, readSync, closeSync } from "node:fs";
+import { closeSync, openSync, readSync } from "node:fs";
 
 const MAX_BYTES = 8192;
 const MAX_SUMMARY_LENGTH = 80;

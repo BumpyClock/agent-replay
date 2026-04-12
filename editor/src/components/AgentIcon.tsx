@@ -28,10 +28,7 @@ export function AgentIcon({ source, size = 16 }: AgentIconProps) {
   );
 }
 
-const ICONS: Record<
-  string,
-  { viewBox: string; content: React.ReactNode }
-> = {
+const ICONS: Record<string, { viewBox: string; content: React.ReactNode }> = {
   "claude-code": {
     viewBox: "0 0 16 16",
     content: (
