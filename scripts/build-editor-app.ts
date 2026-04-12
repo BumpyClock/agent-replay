@@ -4,6 +4,11 @@ import { rmSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { build } from "vite";
 
+rmSync(new URL("../dist", import.meta.url), {
+  force: true,
+  recursive: true,
+});
+
 rmSync(new URL("../template/assets", import.meta.url), {
   force: true,
   recursive: true,

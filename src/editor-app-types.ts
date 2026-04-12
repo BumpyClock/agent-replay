@@ -14,6 +14,7 @@ export interface SessionFileEntry {
   file: string;
   date?: string;
   source?: string;
+  summary?: string;
 }
 
 /**
@@ -172,85 +173,4 @@ export interface ExportOptions {
 export interface RedactRule {
   search: string;
   replacement: string;
-}
-
-/**
- * Mutable browser-side editor state.
- */
-export interface AppState {
-  currentSessionId: string | null;
-  currentTurns: EditorTurnSummary[];
-  excludedTurns: Set<number>;
-  bookmarks: Map<number, string>;
-  previewBlobUrl: string | null;
-  dragging: boolean;
-  hasTextEdits: boolean;
-  lastToggleIndex: number | null;
-  lastClickShift: boolean;
-  contentSearchDebounce: ReturnType<typeof setTimeout> | null;
-}
-
-/**
- * Required DOM elements for editor app behavior.
- */
-export interface AppElements {
-  appEl: HTMLElement;
-  sidebarToggleBtn: HTMLButtonElement;
-  titleInput: HTMLInputElement;
-  resetBtn: HTMLButtonElement;
-  exportBtn: HTMLButtonElement;
-  exportDataBtn: HTMLButtonElement;
-  importHtmlBtn: HTMLButtonElement;
-  importHtmlFile: HTMLInputElement;
-  themeModeBtn: HTMLButtonElement;
-  helpBtn: HTMLButtonElement;
-  confirmModal: HTMLElement;
-  confirmTitle: HTMLElement;
-  confirmMessage: HTMLElement;
-  confirmOk: HTMLButtonElement;
-  confirmCancel: HTMLButtonElement;
-  helpModal: HTMLElement;
-  helpModalClose: HTMLButtonElement;
-  sessionsToggle: HTMLElement;
-  sessionsSection: HTMLElement;
-  optionsToggle: HTMLElement;
-  optionsSection: HTMLElement;
-  sessionsTree: HTMLElement;
-  sessionsSearch: HTMLInputElement;
-  searchResults: HTMLElement;
-  browseToggle: HTMLElement;
-  browseBody: HTMLElement;
-  browsePathInput: HTMLInputElement;
-  browseList: HTMLElement;
-  turnsToolbar: HTMLElement;
-  selectAllBtn: HTMLButtonElement;
-  selectNoneBtn: HTMLButtonElement;
-  expandAllBtn: HTMLButtonElement;
-  collapseAllBtn: HTMLButtonElement;
-  turnsList: HTMLElement;
-  previewIframe: HTMLIFrameElement;
-  refreshIndicator: HTMLElement;
-  resizeHandle: HTMLElement;
-  redactRulesContainer: HTMLElement;
-  addRuleBtn: HTMLButtonElement;
-  helpVersion: HTMLElement;
-}
-
-/**
- * Required option form controls for preview and export.
- */
-export interface OptionElements {
-  theme: HTMLSelectElement;
-  speed: HTMLInputElement;
-  thinking: HTMLInputElement;
-  toolCalls: HTMLInputElement;
-  fontSize: HTMLSelectElement;
-  redact: HTMLInputElement;
-  userLabel: HTMLInputElement;
-  asstLabel: HTMLInputElement;
-  desc: HTMLTextAreaElement;
-  ogImage: HTMLInputElement;
-  timing: HTMLSelectElement;
-  minify: HTMLInputElement;
-  compress: HTMLInputElement;
 }

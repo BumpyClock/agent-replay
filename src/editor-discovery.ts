@@ -5,6 +5,7 @@
 import { readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
+import { extractSessionSummary } from "./editor-server/session-summary.js";
 import { discoverProviderSessions } from "./source-providers.js";
 
 /** Ensure a path is under $HOME to prevent filesystem traversal. */
@@ -54,5 +55,13 @@ export function browseDirectory(dirPath: string) {
 
 /** Discover session folders under all supported local providers. */
 export function discoverSessions() {
-  return discoverProviderSessions();
+  const groups = discoverProviderSessions();
+  for (const group of groups) {
+    for (const project of group.projects) {
+      for (const session of project.sessions) {
+        session.summary = extractSessionSummary(session.path);
+      }
+    }
+  }
+  return groups;
 }

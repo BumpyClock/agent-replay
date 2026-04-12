@@ -4,6 +4,7 @@ import type {
   SearchResult,
   SessionGroup,
 } from "../../../src/editor-app-types.js";
+import { AgentIcon } from "./AgentIcon.js";
 
 interface SessionSidebarProps {
   collapsed: boolean;
@@ -244,11 +245,7 @@ export function SessionSidebar({
                     >
                       <div className="search-result-meta">
                         {result.source ? (
-                          <span
-                            className={`badge agent-badge agent-${result.source.toLowerCase().replace(/\s+/g, "-")}`}
-                          >
-                            {result.source}
-                          </span>
+                          <AgentIcon source={result.source} size={12} />
                         ) : null}
                         {result.group} / {result.file}
                       </div>
@@ -295,23 +292,22 @@ export function SessionSidebar({
                                   onClick={() => onLoadSession(session.path)}
                                   type="button"
                                 >
-                                  <span>
-                                    {session.file.replace(/\.jsonl$/i, "")}
-                                  </span>
                                   {session.source ? (
-                                    <span
-                                      className={`badge agent-badge agent-${session.source.toLowerCase().replace(/\s+/g, "-")}`}
-                                    >
-                                      {session.source}
-                                    </span>
+                                    <AgentIcon source={session.source} />
                                   ) : null}
-                                  {session.date ? (
-                                    <span className="badge">
-                                      {new Date(
-                                        session.date,
-                                      ).toLocaleDateString()}
+                                  <div className="session-item-info">
+                                    <span className="session-item-name">
+                                      {session.summary ||
+                                        session.file.replace(/\.jsonl$/i, "")}
                                     </span>
-                                  ) : null}
+                                    {session.date ? (
+                                      <span className="session-item-date">
+                                        {new Date(
+                                          session.date,
+                                        ).toLocaleDateString()}
+                                      </span>
+                                    ) : null}
+                                  </div>
                                 </button>
                               ))}
                             </div>

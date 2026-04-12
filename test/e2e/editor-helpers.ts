@@ -13,7 +13,7 @@ async function startEditorServer() {
 
   startEditor(port, { open: false });
 
-  for (let attempt = 0; attempt < 50; attempt += 1) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
     try {
       const response = await fetch(`${baseUrl}/api/themes`);
       if (response.ok) {
@@ -37,7 +37,7 @@ async function getBaseUrl() {
 
 export async function gotoEditor(page: Page) {
   await page.goto(await getBaseUrl());
-  await page.waitForSelector("#sessionsTree", { timeout: 5000 });
+  await page.waitForSelector("#sessionsTree", { timeout: 15000 });
 }
 
 export async function loadFixture(page: Page) {

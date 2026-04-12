@@ -126,6 +126,7 @@ export interface SessionFileEntry {
   path: string;
   date: string | null;
   source?: string;
+  summary?: string;
 }
 
 /**

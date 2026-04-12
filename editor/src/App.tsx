@@ -1,4 +1,6 @@
 import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
   useDeferredValue,
   useEffect,
   useEffectEvent,
@@ -33,6 +35,12 @@ import {
 
 const api = createEditorApiClient();
 
+const EXPANDED_SIDEBAR_WIDTH = 280;
+const COLLAPSED_SIDEBAR_WIDTH = 16;
+const RESIZE_HANDLE_WIDTH = 12;
+const MIN_EDITOR_WIDTH = 320;
+const MIN_PREVIEW_WIDTH = 360;
+
 async function triggerDownload(
   response: Response,
   fallbackFilename: string,
@@ -61,9 +69,8 @@ export function App() {
     new Map<number, ReturnType<typeof setTimeout>>(),
   );
   const dragStateRef = useRef<{
-    active: boolean;
-    startX: number;
-    width: number;
+    handle: HTMLButtonElement;
+    pointerId: number;
   } | null>(null);
   const lastToggleIndexRef = useRef<number | null>(null);
   const autoloadedRef = useRef(false);
@@ -116,10 +123,14 @@ export function App() {
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [colorMode, setColorMode] = useState<"dark" | "light">("dark");
   const [editorWidth, setEditorWidth] = useState(520);
+  const [isResizing, setIsResizing] = useState(false);
 
   const deferredSearchValue = useDeferredValue(searchValue);
   const hasChanges =
     hasTextEdits || excludedTurns.size > 0 || bookmarks.size > 0;
+  const sidebarWidth = sidebarCollapsed
+    ? COLLAPSED_SIDEBAR_WIDTH
+    : EXPANDED_SIDEBAR_WIDTH;
 
   const buildExportOptions = useEffectEvent(
     (): ExportOptions => ({
@@ -190,6 +201,63 @@ export function App() {
       setSearchStatus(null);
     },
   );
+
+  function getResizeBounds() {
+    if (!appRef.current) {
+      return null;
+    }
+
+    const rect = appRef.current.getBoundingClientRect();
+    const maxWidth = Math.max(
+      MIN_EDITOR_WIDTH,
+      rect.width - sidebarWidth - RESIZE_HANDLE_WIDTH - MIN_PREVIEW_WIDTH,
+    );
+
+    return {
+      appLeft: rect.left,
+      maxWidth,
+      minWidth: MIN_EDITOR_WIDTH,
+      sidebarWidth,
+    };
+  }
+
+  function clampEditorWidth(nextWidth: number) {
+    const bounds = getResizeBounds();
+    if (!bounds) {
+      return nextWidth;
+    }
+
+    return Math.min(bounds.maxWidth, Math.max(bounds.minWidth, nextWidth));
+  }
+
+  function updateEditorWidthFromPointer(clientX: number) {
+    const bounds = getResizeBounds();
+    if (!bounds) {
+      return;
+    }
+
+    const nextWidth = clampEditorWidth(
+      clientX - bounds.appLeft - bounds.sidebarWidth,
+    );
+    setEditorWidth(nextWidth);
+  }
+
+  const syncEditorWidth = useEffectEvent(() => {
+    setEditorWidth((current) => clampEditorWidth(current));
+  });
+
+  const stopResize = useEffectEvent(() => {
+    const dragState = dragStateRef.current;
+    if (
+      dragState?.handle.isConnected &&
+      dragState.handle.hasPointerCapture(dragState.pointerId)
+    ) {
+      dragState.handle.releasePointerCapture(dragState.pointerId);
+    }
+
+    dragStateRef.current = null;
+    setIsResizing(false);
+  });
 
   useEffect(() => {
     async function loadBootData() {
@@ -299,30 +367,12 @@ export function App() {
   }, [currentSessionId, turns]);
 
   useEffect(() => {
-    function handleMouseMove(event: MouseEvent) {
-      if (!dragStateRef.current || !appRef.current) {
-        return;
-      }
-      const rect = appRef.current.getBoundingClientRect();
-      const delta = event.clientX - dragStateRef.current.startX;
-      const nextWidth = Math.max(
-        320,
-        Math.min(rect.width - 420, dragStateRef.current.width + delta),
-      );
-      setEditorWidth(nextWidth);
-    }
-
-    function stopDrag() {
-      dragStateRef.current = null;
-    }
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", stopDrag);
-    window.addEventListener("blur", stopDrag);
+    syncEditorWidth();
+    window.addEventListener("resize", syncEditorWidth);
+    window.addEventListener("blur", stopResize);
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", stopDrag);
-      window.removeEventListener("blur", stopDrag);
+      window.removeEventListener("resize", syncEditorWidth);
+      window.removeEventListener("blur", stopResize);
     };
   }, []);
 
@@ -593,7 +643,7 @@ export function App() {
 
   return (
     <div
-      className={`editor-shell ${colorMode} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}
+      className={`editor-shell ${colorMode} ${sidebarCollapsed ? "sidebar-collapsed" : ""} ${isResizing ? "is-resizing" : ""}`}
     >
       <input
         hidden
@@ -612,9 +662,7 @@ export function App() {
         className="app"
         ref={appRef}
         style={{
-          gridTemplateColumns: sidebarCollapsed
-            ? `16px minmax(320px, ${editorWidth}px) 4px 1fr`
-            : `280px minmax(320px, ${editorWidth}px) 4px 1fr`,
+          gridTemplateColumns: `${sidebarWidth}px minmax(${MIN_EDITOR_WIDTH}px, ${editorWidth}px) ${RESIZE_HANDLE_WIDTH}px 1fr`,
         }}
       >
         <SessionSidebar
@@ -743,14 +791,47 @@ export function App() {
 
         <button
           aria-label="Resize editor and preview panels"
-          className="resize-handle"
+          className={`resize-handle ${isResizing ? "active" : ""}`}
           id="resizeHandle"
-          onMouseDown={(event) => {
+          onKeyDown={(event: ReactKeyboardEvent<HTMLButtonElement>) => {
+            const step = event.shiftKey ? 96 : 24;
+            if (event.key === "ArrowLeft") {
+              event.preventDefault();
+              setEditorWidth((current) => clampEditorWidth(current - step));
+            } else if (event.key === "ArrowRight") {
+              event.preventDefault();
+              setEditorWidth((current) => clampEditorWidth(current + step));
+            }
+          }}
+          onLostPointerCapture={stopResize}
+          onPointerCancel={stopResize}
+          onPointerDown={(event: ReactPointerEvent<HTMLButtonElement>) => {
+            if (event.pointerType === "mouse" && event.button !== 0) {
+              return;
+            }
+
+            event.preventDefault();
+            event.currentTarget.setPointerCapture(event.pointerId);
             dragStateRef.current = {
-              active: true,
-              startX: event.clientX,
-              width: editorWidth,
+              handle: event.currentTarget,
+              pointerId: event.pointerId,
             };
+            updateEditorWidthFromPointer(event.clientX);
+            setIsResizing(true);
+          }}
+          onPointerMove={(event: ReactPointerEvent<HTMLButtonElement>) => {
+            if (dragStateRef.current?.pointerId !== event.pointerId) {
+              return;
+            }
+
+            updateEditorWidthFromPointer(event.clientX);
+          }}
+          onPointerUp={(event: ReactPointerEvent<HTMLButtonElement>) => {
+            if (dragStateRef.current?.pointerId !== event.pointerId) {
+              return;
+            }
+
+            stopResize();
           }}
           type="button"
         />
