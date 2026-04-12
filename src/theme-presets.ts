@@ -189,7 +189,7 @@ export const BUILTIN_THEMES = {
     "thinking-bg": "rgba(245,239,255,0.88)",
     extraCss: `
       body {
-        font-family: "Aptos", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, "Inter", sans-serif;
         background:
           radial-gradient(circle at 12% 14%, rgba(255,128,45,0.24), transparent 34%),
           radial-gradient(circle at 88% 8%, rgba(170,75,225,0.18), transparent 28%),
@@ -242,6 +242,10 @@ export const BUILTIN_THEMES = {
         background: rgba(255,255,255,0.92);
         border-color: rgba(0,0,0,0.12);
       }
+      .controls button:active {
+        transform: scale(0.93);
+        transition: transform 80ms ease;
+      }
       .controls button.active {
         background: rgba(35,131,226,0.14);
         color: #165ba1;
@@ -256,12 +260,15 @@ export const BUILTIN_THEMES = {
       .turn {
         margin-bottom: 18px;
         opacity: 0.5;
+        transform: translateY(4px);
       }
       .turn.visible {
         opacity: 0.78;
+        transform: translateY(0);
       }
       .turn.visible.active {
         opacity: 1;
+        transform: translateY(0);
       }
       .turn-header,
       .assistant-text,
@@ -283,6 +290,13 @@ export const BUILTIN_THEMES = {
       }
       .turn-header {
         padding: 12px 14px;
+        transition: background 150ms ease, transform 80ms ease;
+      }
+      .turn-header:hover {
+        background: rgba(255,255,255,0.72);
+      }
+      .turn-header:active {
+        transform: scale(0.995);
       }
       .turn-body {
         padding: 10px 4px 2px;
@@ -295,7 +309,7 @@ export const BUILTIN_THEMES = {
       .tool-header,
       .tool-group-header,
       .bookmark-divider-label {
-        font-family: "Aptos", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, "Inter", sans-serif;
         letter-spacing: 0.04em;
       }
       .user-prompt {
@@ -313,6 +327,9 @@ export const BUILTIN_THEMES = {
       .user-text pre,
       .thinking-body pre {
         background: rgba(255,255,255,0.8);
+        border-radius: 14px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
       }
       .tool-block,
       .tool-group,
@@ -329,7 +346,7 @@ export const BUILTIN_THEMES = {
       .more-popover label,
       .font-size-row,
       .chapter-item {
-        font-family: "Aptos", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", system-ui, "Inter", sans-serif;
       }
       @media (max-width: 640px) {
         .controls {

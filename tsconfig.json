@@ -3,8 +3,9 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "jsx": "react-jsx",
     "lib": ["ES2022", "DOM"],
-    "types": ["node"],
+    "types": ["node", "vite/client"],
     "strict": false,
     "useUnknownInCatchVariables": false,
     "skipLibCheck": true,
@@ -15,10 +16,13 @@
   },
   "include": [
     "bin/**/*.ts",
+    "editor/**/*.ts",
+    "editor/**/*.tsx",
     "src/**/*.ts",
     "scripts/**/*.ts",
     "test/**/*.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "vite.editor.config.ts"
   ],
   "exclude": ["dist", "node_modules"]
 }

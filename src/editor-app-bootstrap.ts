@@ -79,8 +79,7 @@ export async function bootstrapEditorApp(): Promise<void> {
 
   elements.sidebarToggleBtn.addEventListener("click", () => {
     const collapsed = document.body.classList.toggle("sidebar-collapsed");
-    elements.sidebarToggleBtn.innerHTML = collapsed ? "&#8250;" : "&#8249;";
-    elements.appEl.style.gridTemplateColumns = "";
+    elements.sidebarToggleBtn.textContent = collapsed ? "\u203A" : "\u2039";
   });
 
   elements.sessionsToggle.addEventListener("click", () => {

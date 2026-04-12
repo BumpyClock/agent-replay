@@ -423,8 +423,8 @@ Generated HTML files use two layers of optimization (zero external dependencies)
 
 ```bash
 bun install         # install dev dependencies
-bun run dev         # launch editor server from TS source
-bun run build       # build template + compile TypeScript to dist/
+bun run dev         # launch editor server with Vite-backed React editor
+bun run build       # build editor assets, minify player template, compile TS to dist/
 bun run typecheck   # type-check without emitting
 bun run doctor      # auto-format then lint (Biome)
 bun run test        # unit tests

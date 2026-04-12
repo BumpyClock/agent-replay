@@ -17,6 +17,18 @@
 <style>
 /*THEME_CSS*/
 
+:root {
+  /* Motion tokens */
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-quint: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+  --ease-in-out-quint: cubic-bezier(0.86, 0, 0.07, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-enter: 250ms;
+  --duration-exit: 200ms;
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -67,7 +79,9 @@ body {
   font-family: inherit;
   font-size: 14px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--duration-fast) ease,
+              transform var(--duration-fast) ease,
+              border-color var(--duration-fast) ease;
   flex-shrink: 0;
   height: 34px;
   min-width: 34px;
@@ -76,6 +90,11 @@ body {
   justify-content: center;
 }
 .controls button:hover { background: var(--border); }
+.controls button:active { transform: scale(0.93); }
+#btn-play.playing {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 #btn-play { width: 36px; }
 #btn-prev, #btn-next { min-width: 30px; width: 30px; font-size: 13px; }
 #btn-prev-turn, #btn-next-turn { min-width: 26px; width: 26px; font-size: 10px; padding: 2px; }
@@ -115,12 +134,12 @@ body.in-iframe .bar-title:hover {
 
 .progress-bar {
   flex: 1;
-  height: 4px;
+  height: 5px;
   background: var(--bg);
-  border-radius: 2px;
+  border-radius: 999px;
   cursor: pointer;
   position: relative;
-  transition: height 0.15s;
+  transition: height var(--duration-fast) ease;
 }
 .progress-bar::before {
   content: "";
@@ -131,13 +150,30 @@ body.in-iframe .bar-title:hover {
   right: 0;
 }
 .progress-bar:hover {
-  height: 6px;
+  height: 10px;
 }
 .progress-fill {
   height: 100%;
   background: var(--accent);
-  border-radius: 2px;
-  transition: width 0.2s;
+  border-radius: 999px;
+  transition: width var(--duration-normal) ease;
+  position: relative;
+}
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%) scale(0);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: transform var(--duration-fast) ease;
+}
+.progress-bar:hover .progress-fill::after {
+  transform: translateY(-50%) scale(1);
 }
 .progress-tooltip {
   position: absolute;
@@ -194,11 +230,11 @@ body.in-iframe .bar-title:hover {
   letter-spacing: -0.5px;
 }
 .speed-popover {
-  display: none;
   position: absolute;
   bottom: calc(100% + 6px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(0.95) translateY(4px);
+  transform-origin: bottom center;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -206,8 +242,22 @@ body.in-iframe .bar-title:hover {
   z-index: 200;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   min-width: 60px;
+  opacity: 0;
+  transition: opacity var(--duration-exit) var(--ease-in-quint),
+              transform var(--duration-exit) var(--ease-in-quint),
+              visibility 0ms linear var(--duration-exit);
+  pointer-events: none;
+  visibility: hidden;
 }
-.speed-wrap.open .speed-popover { display: block; }
+.speed-wrap.open .speed-popover {
+  opacity: 1;
+  transform: translateX(-50%) scale(1) translateY(0);
+  transition: opacity var(--duration-enter) var(--ease-out-quint),
+              transform var(--duration-enter) var(--ease-out-quint),
+              visibility 0ms linear 0ms;
+  pointer-events: auto;
+  visibility: visible;
+}
 .speed-popover button {
   display: block;
   width: 100%;
@@ -229,7 +279,6 @@ body.in-iframe .bar-title:hover {
   position: relative;
 }
 .filter-popover {
-  display: none;
   position: absolute;
   bottom: calc(100% + 6px);
   right: 0;
@@ -240,8 +289,24 @@ body.in-iframe .bar-title:hover {
   z-index: 200;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   min-width: 140px;
+  opacity: 0;
+  transform: scale(0.95) translateY(4px);
+  transform-origin: bottom right;
+  transition: opacity var(--duration-exit) var(--ease-in-quint),
+              transform var(--duration-exit) var(--ease-in-quint),
+              visibility 0ms linear var(--duration-exit);
+  pointer-events: none;
+  visibility: hidden;
 }
-.filter-wrap.open .filter-popover { display: block; }
+.filter-wrap.open .filter-popover {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: opacity var(--duration-enter) var(--ease-out-quint),
+              transform var(--duration-enter) var(--ease-out-quint),
+              visibility 0ms linear 0ms;
+  pointer-events: auto;
+  visibility: visible;
+}
 .filter-popover label {
   display: flex;
   align-items: center;
@@ -293,7 +358,6 @@ body.in-iframe .bar-title:hover {
 .more-wrap { position: relative; display: none; margin-left: 6px; }
 @media (max-width: 600px) { .more-wrap { display: block; } }
 .more-popover {
-  display: none;
   position: absolute;
   bottom: calc(100% + 6px);
   right: 0;
@@ -306,8 +370,24 @@ body.in-iframe .bar-title:hover {
   min-width: 180px;
   max-height: 40vh;
   overflow-y: auto;
+  opacity: 0;
+  transform: scale(0.95) translateY(4px);
+  transform-origin: bottom right;
+  transition: opacity var(--duration-exit) var(--ease-in-quint),
+              transform var(--duration-exit) var(--ease-in-quint),
+              visibility 0ms linear var(--duration-exit);
+  pointer-events: none;
+  visibility: hidden;
 }
-.more-wrap.open .more-popover { display: block; }
+.more-wrap.open .more-popover {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: opacity var(--duration-enter) var(--ease-out-quint),
+              transform var(--duration-enter) var(--ease-out-quint),
+              visibility 0ms linear 0ms;
+  pointer-events: auto;
+  visibility: visible;
+}
 .more-open-link { display: none; font-size: 12px; color: var(--text-dim); text-decoration: none; padding: 4px 0; white-space: nowrap; }
 .more-open-link + hr.more-divider { display: none; }
 body.in-iframe .more-open-link { display: block; }
@@ -374,14 +454,18 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
 
 .turn {
   margin-bottom: 24px;
-  opacity: 0.25;
-  transition: opacity 0.4s;
+  opacity: 0.15;
+  transform: translateY(4px);
+  transition: opacity var(--duration-slow) var(--ease-out-quint),
+              transform var(--duration-slow) var(--ease-out-quint);
 }
 .turn.visible {
   opacity: 0.35;
+  transform: translateY(0);
 }
 .turn.visible.active {
   opacity: 1;
+  transform: translateY(0);
 }
 
 /* User message */
@@ -877,11 +961,11 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
   flex-shrink: 0;
 }
 .chapter-menu {
-  display: none;
   position: absolute;
   bottom: calc(100% + 6px);
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(0.95) translateY(4px);
+  transform-origin: bottom center;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -892,8 +976,22 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
   max-width: 280px;
   max-height: 300px;
   overflow-y: auto;
+  opacity: 0;
+  transition: opacity var(--duration-exit) var(--ease-in-quint),
+              transform var(--duration-exit) var(--ease-in-quint),
+              visibility 0ms linear var(--duration-exit);
+  pointer-events: none;
+  visibility: hidden;
 }
-.chapter-wrap.open .chapter-menu { display: block; }
+.chapter-wrap.open .chapter-menu {
+  opacity: 1;
+  transform: translateX(-50%) scale(1) translateY(0);
+  transition: opacity var(--duration-enter) var(--ease-out-quint),
+              transform var(--duration-enter) var(--ease-out-quint),
+              visibility 0ms linear 0ms;
+  pointer-events: auto;
+  visibility: visible;
+}
 .chapter-item {
   display: flex;
   align-items: center;
@@ -929,8 +1027,12 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
   justify-content: center;
   gap: 32px;
   background: var(--bg);
+  transition: opacity var(--duration-exit) var(--ease-in-quint);
 }
-.splash.hidden { display: none; }
+.splash.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
 .splash-title {
   color: var(--text);
   font-size: 22px;
@@ -938,6 +1040,9 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
   text-align: center;
   max-width: 600px;
   padding: 0 24px;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: splashEnter var(--duration-slow) var(--ease-out-quint) 100ms forwards;
 }
 .splash-play {
   width: 64px;
@@ -953,6 +1058,32 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
   justify-content: center;
   transition: background 0.2s, color 0.2s;
   padding-left: 4px;
+  opacity: 0;
+  transform: scale(0.9);
+  animation: splashPlayEnter var(--duration-slow) var(--ease-out-quint) 250ms forwards;
+  position: relative;
+}
+@keyframes splashEnter {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes splashPlayEnter {
+  to { opacity: 1; transform: scale(1); }
+}
+.splash-play::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  animation: splashPulse 2s var(--ease-out-quint) 600ms infinite;
+}
+@keyframes splashPulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+.splash-play:active {
+  transform: scale(0.93);
 }
 .splash-play:hover {
   background: var(--accent);
@@ -962,11 +1093,11 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
 /* Sub-turn animation */
 .block-hidden { display: none; }
 .block-revealing {
-  animation: blockFadeIn 0.2s ease-out;
+  animation: blockFadeIn var(--duration-enter) var(--ease-out-quint);
 }
 @keyframes blockFadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Scrollbar */
@@ -985,11 +1116,13 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
   background: var(--bg-surface);
   border-left: 1px solid var(--border);
   z-index: 90;
-  display: none;
+  display: flex;
   flex-direction: column;
   font-size: 12px;
+  transform: translateX(100%);
+  transition: transform var(--duration-enter) var(--ease-out-quint);
 }
-.file-sidebar.open { display: flex; }
+.file-sidebar.open { transform: translateX(0); }
 .file-sidebar-header {
   display: flex;
   align-items: center;
@@ -1063,6 +1196,17 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
   white-space: nowrap;
 }
 .file-sidebar-toggle2:hover { color: var(--text); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 </style>
 </head>
@@ -1553,8 +1697,11 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
   }
 
   // Splash screen helpers
-  function showSplash() { splash.classList.remove("hidden"); }
-  function hideSplash() { splash.classList.add("hidden"); }
+  function showSplash() { splash.style.display = ""; splash.classList.remove("hidden"); }
+  function hideSplash() {
+    splash.classList.add("hidden");
+    splash.addEventListener("transitionend", () => { splash.style.display = "none"; }, { once: true });
+  }
   function isSplashVisible() { return !splash.classList.contains("hidden"); }
 
   // Progress bar math: map between 1-based turn numbers and 0-1 percentages
@@ -2059,8 +2206,8 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
     }
     playing = true;
     startTimer();
-    btnPlay.innerHTML = "&#9646;&#9646;";
-    btnPlay.classList.add("active");
+    btnPlay.textContent = "\u25AE\u25AE";
+    btnPlay.classList.add("active", "playing");
 
     // Scroll current turn into view so it's clear playback started
     if (currentTurn > 0) {
@@ -2111,7 +2258,7 @@ body.in-iframe .more-open-link + hr.more-divider { display: block; }
     stopTimer();
     cancelScrollAnim();
     btnPlay.innerHTML = "&#9654;";
-    btnPlay.classList.remove("active");
+    btnPlay.classList.remove("active", "playing");
     if (playTimer) { clearTimeout(playTimer); playTimer = null; }
     if (animateCancelFn) { animateCancelFn(); animateCancelFn = null; }
   }

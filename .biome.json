@@ -6,6 +6,8 @@
       "!dist",
       "!docs/*.html",
       "!template/editor-app.js",
+      "!template/editor-app.css",
+      "!template/assets",
       "!template/player.html",
       "!template/player.min.html"
     ]

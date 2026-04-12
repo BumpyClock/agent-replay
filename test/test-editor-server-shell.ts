@@ -25,8 +25,9 @@ describe("editor-server shell", () => {
     const res = await harness.get("/");
     assert.equal(res.status, 200);
     const html = await res.text();
-    assert.match(html, /<!DOCTYPE html>/);
+    assert.match(html, /<!doctype html>/i);
     assert.match(html, /src="\/editor-app\.js"/);
+    assert.match(html, /href="\/editor-app\.css"/);
   });
 
   it("GET /editor-app.js returns compiled editor app", async () => {
@@ -37,8 +38,16 @@ describe("editor-server shell", () => {
       /application\/javascript/,
     );
     const js = await res.text();
-    assert.match(js, /loadSessions/);
-    assert.match(js, /apiJson/);
+    assert.match(js, /createRoot/);
+    assert.match(js, /renderPreview/);
+  });
+
+  it("GET /editor-app.css returns compiled editor styles", async () => {
+    const res = await harness.get("/editor-app.css");
+    assert.equal(res.status, 200);
+    assert.match(res.headers.get("content-type") || "", /text\/css/);
+    const css = await res.text();
+    assert.match(css, /\.editor-shell/);
   });
 
   it("GET /api/themes returns theme list", async () => {

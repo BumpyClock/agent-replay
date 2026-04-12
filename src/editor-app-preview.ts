@@ -124,6 +124,7 @@ export function createPreviewController({
     }
 
     elements.refreshIndicator.classList.add("active");
+    elements.previewIframe.classList.add("refreshing");
     try {
       const data = await api.renderPreview(
         state.currentSessionId,
@@ -135,9 +136,15 @@ export function createPreviewController({
       state.previewBlobUrl = URL.createObjectURL(
         new Blob([data.html], { type: "text/html" }),
       );
+      elements.previewIframe.addEventListener(
+        "load",
+        () => elements.previewIframe.classList.remove("refreshing"),
+        { once: true },
+      );
       elements.previewIframe.src = state.previewBlobUrl;
     } catch (error) {
       console.error("Preview failed:", error);
+      elements.previewIframe.classList.remove("refreshing");
     } finally {
       elements.refreshIndicator.classList.remove("active");
     }

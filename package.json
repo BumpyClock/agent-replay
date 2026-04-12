@@ -24,11 +24,15 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.11",
-    "@types/node": "^25.6.0",
     "@playwright/test": "^1.58.2",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
     "esbuild": "^0.25.0",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vite": "^8.0.8"
   },
   "engines": {
     "node": ">=18"
@@ -44,5 +48,9 @@
     "type": "git",
     "url": "https://github.com/es617/claude-replay"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  }
 }
