@@ -6,13 +6,9 @@
  * CLI, serve, and watch modes can share the same logic without closure capture.
  */
 
-import {
-  applyPacedTiming,
-  detectFormat,
-  filterTurns,
-  parseTranscript,
-} from "./parser.js";
 import { render } from "./renderer.js";
+import { parseReplayInputs } from "./replay-inputs.js";
+import { prepareReplayData } from "./replay-projector.js";
 import type { Bookmark, RedactRule, Theme } from "./types.js";
 
 export interface BuildReplayOptions {
@@ -103,90 +99,30 @@ export function buildReplay(
     compress,
   } = opts;
 
-  // Parse and concatenate all input files.
-  let format = detectFormat(inputFiles[0]);
-  const allTurns = [];
+  const { turns: allTurns, format } = parseReplayInputs(inputFiles);
 
-  for (const file of inputFiles) {
-    const fileTurns = parseTranscript(file);
-    if (inputFiles.length > 1) {
-      const f = detectFormat(file);
-      if (f === "cursor") format = "cursor";
-    }
-    allTurns.push(...fileTurns);
-  }
-
-  // When multiple files are given: sort chronologically if all turns have
-  // timestamps, then re-index sequentially.
   if (inputFiles.length > 1) {
-    const allHaveTimestamps =
-      allTurns.length > 0 && allTurns.every((t) => t.timestamp);
-    if (allHaveTimestamps) {
-      allTurns.sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-      );
-    }
-    for (let i = 0; i < allTurns.length; i++) {
-      allTurns[i].index = i + 1;
-    }
     console.error(
       `Merged ${inputFiles.length} sessions (${allTurns.length} turns total)`,
     );
   }
 
-  const turns = filterTurns(allTurns, {
+  const prepared = prepareReplayData(allTurns, {
     turnRange,
     excludeTurns,
     timeFrom,
     timeTo,
+    timing,
+    bookmarks: cliBookmarks,
+    format,
+    assistantLabelOverride,
+    consumeInlineTurnBookmarks: true,
   });
-
-  // Re-index filtered turns and build a map for remapping bookmark indices.
-  const indexMap = new Map<number, number>();
-  for (let i = 0; i < turns.length; i++) {
-    indexMap.set(turns[i].index, i + 1);
-    turns[i].index = i + 1;
-  }
+  const turns = prepared.turns;
 
   if (turns.length === 0) {
     console.error("Warning: no turns found after filtering.");
   }
-
-  // Apply paced timing when real timestamps are absent or explicitly requested.
-  const hasTimestamps = turns.some((t) => t.timestamp);
-  const usedPacing =
-    timing === "paced" || (timing === "auto" && !hasTimestamps);
-  if (usedPacing) {
-    applyPacedTiming(turns);
-  }
-  const hasRealTimestamps = hasTimestamps && !usedPacing;
-
-  // Merge CLI bookmarks (remapped through filtering) and inline turn bookmarks.
-  const bookmarks: Bookmark[] = cliBookmarks
-    .map((bm) => ({ turn: indexMap.get(bm.turn), label: bm.label }))
-    .filter((bm): bm is Bookmark => bm.turn != null);
-
-  for (const t of turns) {
-    if (t.bookmark) {
-      bookmarks.push({ turn: t.index, label: t.bookmark });
-      delete t.bookmark;
-    }
-  }
-  bookmarks.sort((a, b) => a.turn - b.turn);
-
-  // Auto-detect the assistant label when no explicit override is given.
-  const assistantLabel =
-    assistantLabelOverride ??
-    (format === "gemini"
-      ? "Gemini"
-      : format === "codex"
-        ? "Codex"
-        : format === "cursor"
-          ? "Assistant"
-          : format === "opencode"
-            ? "OpenCode"
-            : "Claude");
 
   const html = render(turns, {
     speed,
@@ -197,12 +133,12 @@ export function buildReplay(
     redactSecrets,
     redactRules,
     userLabel,
-    assistantLabel,
+    assistantLabel: prepared.assistantLabel,
     title,
     description,
     ogImage,
-    bookmarks,
-    hasRealTimestamps,
+    bookmarks: prepared.bookmarks,
+    hasRealTimestamps: prepared.hasRealTimestamps,
     minified,
     compress,
   });

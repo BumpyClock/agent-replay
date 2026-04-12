@@ -1,7 +1,7 @@
 {
   "name": "claude-replay",
   "version": "0.8.0",
-  "description": "Convert Claude Code, Cursor, and Codex session transcripts into self-contained, embeddable HTML replays",
+  "description": "Convert Claude Code, Copilot CLI, Cursor, Codex CLI, Gemini CLI, and OpenCode transcripts into self-contained, embeddable HTML replays",
   "type": "module",
   "bin": {
     "claude-replay": "dist/bin/claude-replay.js"

@@ -5,7 +5,7 @@
  * Each user message starts a new turn. Assistant blocks are collected and tool results attached.
  */
 
-import { buildTurnsFromEntries } from "./shared.js";
+import { buildTurnsFromEntries } from "./claude-like-turns.js";
 
 export const name = "claude-code";
 

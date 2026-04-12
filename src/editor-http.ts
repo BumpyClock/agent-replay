@@ -7,13 +7,13 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 export const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10 MB
 
-export type RequestBody = Record<string, any>;
+export type RequestBody = Record<string, unknown>;
 
 /**
  * Read and JSON-parse the request body.
  * Rejects if the body exceeds MAX_BODY_SIZE or is not valid JSON.
  */
-export function readBody(req: IncomingMessage): Promise<RequestBody> {
+export function readBody<T = RequestBody>(req: IncomingMessage): Promise<T> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     let size = 0;
@@ -35,7 +35,7 @@ export function readBody(req: IncomingMessage): Promise<RequestBody> {
       if (settled) return;
       settled = true;
       try {
-        resolve(JSON.parse(Buffer.concat(chunks).toString()));
+        resolve(JSON.parse(Buffer.concat(chunks).toString()) as T);
       } catch {
         reject(new Error("Invalid JSON body"));
       }

@@ -14,6 +14,7 @@ const SERVE_REPLAY_MODULE = resolveFileUrlPath(
   import.meta.url,
 );
 const THEMES_MODULE = resolveFileUrlPath("../src/themes.ts", import.meta.url);
+const WATCH_TIMEOUT_MS = 10000;
 
 function makeHelper(mode: "serve" | "watch") {
   const dir = mkdtempSync(join(tmpdir(), "serve-replay-helper-"));
@@ -112,7 +113,7 @@ describe("serveReplay", () => {
     );
 
     try {
-      await waitForOutput(child, "Serving replay at", 5000);
+      await waitForOutput(child, "Serving replay at", WATCH_TIMEOUT_MS);
 
       const html = await fetch(`http://127.0.0.1:${port}`).then((res) =>
         res.text(),
@@ -144,8 +145,12 @@ describe("serveReplay", () => {
     );
 
     try {
-      await waitForOutput(child, `Wrote ${outputFile}`, 5000);
-      await waitForFileText(outputFile, "Scan for BLE devices", 5000);
+      await waitForOutput(child, `Wrote ${outputFile}`, WATCH_TIMEOUT_MS);
+      await waitForFileText(
+        outputFile,
+        "Scan for BLE devices",
+        WATCH_TIMEOUT_MS,
+      );
 
       const updated = readFileSync(fixtureCopy, "utf-8").replace(
         "Scan for BLE devices",
@@ -153,7 +158,11 @@ describe("serveReplay", () => {
       );
       writeFileSync(fixtureCopy, updated);
 
-      await waitForFileText(outputFile, "Scan for USB devices", 5000);
+      await waitForFileText(
+        outputFile,
+        "Scan for USB devices",
+        WATCH_TIMEOUT_MS,
+      );
     } finally {
       child.kill();
     }

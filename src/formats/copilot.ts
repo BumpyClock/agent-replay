@@ -16,7 +16,8 @@
  *   session.shutdown       — session metrics
  */
 
-import { cleanSystemTags, filterEmptyTurns } from "./shared.js";
+import { cleanSystemTags } from "./system-tags.js";
+import { filterEmptyTurns } from "./turn-filter.js";
 
 export const name = "copilot";
 

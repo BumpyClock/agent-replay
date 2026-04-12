@@ -31,11 +31,24 @@ function autosavePath(sourcePath: string): string {
   return join(AUTOSAVE_DIR, autosaveKey(sourcePath));
 }
 
+/**
+ * Session shape accepted by the autosave scheduler.
+ */
 interface AutosaveSession {
   sourcePath: string;
   workingTurns: unknown[];
   excludedTurns?: unknown[];
   bookmarks?: unknown[];
+}
+
+/**
+ * Persisted autosave payload restored when a session reloads.
+ */
+export interface AutosaveData {
+  sourcePath: string;
+  workingTurns: unknown[];
+  excludedTurns: unknown[];
+  bookmarks: unknown[];
 }
 
 /** Schedule an autosave (throttled: at most once per 2 seconds per session). */
@@ -63,11 +76,11 @@ export function scheduleAutosave(session: AutosaveSession): void {
 }
 
 /** Load autosave data for a source path, if it exists. Returns null if none. */
-export function loadAutosave(sourcePath: string): any {
+export function loadAutosave(sourcePath: string): AutosaveData | null {
   try {
     const p = autosavePath(sourcePath);
     if (!existsSync(p)) return null;
-    return JSON.parse(readFileSync(p, "utf-8"));
+    return JSON.parse(readFileSync(p, "utf-8")) as AutosaveData;
   } catch {
     return null;
   }

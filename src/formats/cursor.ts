@@ -6,7 +6,7 @@
  * all assistant blocks except the last per turn as "thinking".
  */
 
-import { buildTurnsFromEntries } from "./shared.js";
+import { buildTurnsFromEntries } from "./claude-like-turns.js";
 
 export const name = "cursor";
 

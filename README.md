@@ -105,9 +105,9 @@ claude-replay ~/.claude/projects/-Users-me-myproject/session-id.jsonl -o replay.
 claude-replay session1-id session2-id -o combined.html
 ```
 
-Running `claude-replay` with no arguments opens a browser-based editor that auto-discovers your Claude Code and Cursor sessions. From there you can browse, edit, preview, and export replays visually.
+Running `claude-replay` with no arguments opens a browser-based editor that auto-discovers your Claude Code, Cursor, Copilot CLI, Codex CLI, and Gemini CLI sessions. From there you can browse, edit, preview, and export replays visually.
 
-For CLI usage, you can pass just a session ID — claude-replay will search `~/.claude/projects/`, `~/.cursor/projects/`, `~/.codex/sessions/`, and `~/.gemini/tmp/` to find the matching file. Or pass the full path to a session file directly.
+For CLI usage, you can pass just a session ID — claude-replay will search `~/.claude/projects/`, `~/.cursor/projects/`, `~/.codex/sessions/`, `~/.gemini/tmp/`, and `~/.copilot/session-state/` to find the matching file. Or pass the full path to a session file directly.
 
 ### Cursor
 
@@ -169,7 +169,7 @@ claude-replay --port 8080
 ![Editor](https://raw.githubusercontent.com/es617/claude-replay/main/docs/editor-demo.gif)
 
 The editor provides:
-- **Session browser** — auto-discovers sessions from `~/.claude/projects/`, `~/.cursor/projects/`, `~/.codex/sessions/`, and `~/.gemini/tmp/`, plus a folder navigator for session files stored elsewhere
+- **Session browser** — auto-discovers sessions from `~/.claude/projects/`, `~/.cursor/projects/`, `~/.codex/sessions/`, `~/.gemini/tmp/`, and `~/.copilot/session-state/`, plus a folder navigator for session files stored elsewhere
 - **Turn editor** — include/exclude turns, edit user prompts, expand assistant blocks (read-only), add bookmarks
 - **Options panel** — theme, speed, thinking/tool call toggles, redaction rules, labels
 - **Live preview** — updates as you edit, renders the same output as the CLI
@@ -185,7 +185,7 @@ claude-replay <input> [input2...] [options]     Generate replay from CLI
 claude-replay extract <replay.html> [-o output.jsonl] [--format jsonl|json]
 ```
 
-Each `<input>` can be a session file path or a session ID. If it is not an existing file path, it is treated as a session ID. claude-replay searches `~/.claude/projects/`, `~/.cursor/projects/`, `~/.codex/sessions/`, and `~/.gemini/tmp/` for a matching session file. You can find your current session ID in Claude Code by running `/status`.
+Each `<input>` can be a session file path or a session ID. If it is not an existing file path, it is treated as a session ID. claude-replay searches `~/.claude/projects/`, `~/.cursor/projects/`, `~/.codex/sessions/`, `~/.gemini/tmp/`, and `~/.copilot/session-state/` for a matching session file. You can find your current session ID in Claude Code by running `/status`.
 
 Multiple inputs are concatenated into a single replay (up to 20). When all sessions have timestamps, turns are sorted chronologically; otherwise command-line order is used. This is useful when accepting a plan creates a new session — chain the sessions to get the full story in one replay.
 

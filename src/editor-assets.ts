@@ -1,4 +1,4 @@
-import { readFileSync, statSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
@@ -12,17 +12,26 @@ export const EDITOR_APP_OUTPUT_PATH = new URL(
 );
 
 const EDITOR_APP_ENTRY_PATH = new URL("./editor-app.ts", import.meta.url);
-const EDITOR_APP_RENDER_PATH = new URL(
-  "./editor-app-render.ts",
-  import.meta.url,
-);
-const EDITOR_APP_TYPES_PATH = new URL("./editor-app-types.ts", import.meta.url);
+const EDITOR_SOURCE_DIR_PATH = new URL("./", import.meta.url);
+
+function editorSourcePaths(): URL[] {
+  const sourceDir = fileURLToPath(EDITOR_SOURCE_DIR_PATH);
+  const trackedNames = readdirSync(sourceDir).filter(
+    (name) => name.startsWith("editor-app") && name.endsWith(".ts"),
+  );
+  trackedNames.push(
+    "editor-app-render.ts",
+    "editor-app-types.ts",
+    "editor-assets.ts",
+  );
+  return Array.from(new Set(trackedNames))
+    .sort()
+    .map((name) => new URL(name, EDITOR_SOURCE_DIR_PATH));
+}
 
 export const EDITOR_DEV_SOURCE_PATHS = [
   EDITOR_HTML_PATH,
-  EDITOR_APP_ENTRY_PATH,
-  EDITOR_APP_RENDER_PATH,
-  EDITOR_APP_TYPES_PATH,
+  ...editorSourcePaths(),
 ];
 
 export function readEditorShell(): string {

@@ -5,7 +5,8 @@
  * Messages have type "user" or "gemini" with thoughts, toolCalls, and content.
  */
 
-import { cleanSystemTags, filterEmptyTurns } from "./shared.js";
+import { cleanSystemTags } from "./system-tags.js";
+import { filterEmptyTurns } from "./turn-filter.js";
 
 export const name = "gemini";
 
