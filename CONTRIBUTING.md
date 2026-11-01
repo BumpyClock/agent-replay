@@ -197,6 +197,28 @@ bun run test:e2e      # Playwright e2e tests
 bun run build         # Build template + compile TypeScript
 ```
 
+### CI runners
+
+Compatible Linux jobs in CI/CD and the scheduled format workflow select Boat.
+The tokenless npm publisher remains on `ubuntu-latest` because
+[npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) requires a
+GitHub-hosted runner. No long-lived token is added and provenance remains enabled. Job names,
+Node matrix, release dependency chain, provider credential conditions and
+publishing permissions are unchanged. Public execution is owner-only under the
+separately approved BumpyClock policy; outsiders/bots remain blocked. Changing
+runner source does not dispatch CI or fix provider API billing.
+
+### Offline format workflow checks
+
+After `bun install --frozen-lockfile` with Bun 1.3.11, run
+`node --import tsx --test test/test-format-workflow.ts test/test-validate-format-*.ts`.
+These checks execute the workflow's validator commands against synthetic local
+sessions, including invalid input and paths with spaces. No provider calls or
+credentials are needed. To validate a saved fixture directly, use
+`node --import tsx test/validate-format.ts <claude|codex|cursor> <file.jsonl>`.
+Credentialed session generation, rendering, and roundtrip checks in the scheduled
+workflow remain separate and require explicit approval to run manually.
+
 ## Other Contributions
 
 - **Bug fixes**: Open a PR with a test that reproduces the bug

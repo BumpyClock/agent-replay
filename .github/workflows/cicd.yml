@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: boat
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -22,7 +22,7 @@ jobs:
       - run: bunx oxlint@latest --deny-warnings src/ bin/
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: boat
     strategy:
       matrix:
         node-version: ["18", "20", "22"]
@@ -38,7 +38,7 @@ jobs:
       - run: bun run test
 
   test-e2e:
-    runs-on: ubuntu-latest
+    runs-on: boat
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -57,7 +57,7 @@ jobs:
       - run: bun run test:e2e
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: boat
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -78,7 +78,7 @@ jobs:
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [lint, test, test-e2e, build]
-    runs-on: ubuntu-latest
+    runs-on: boat
     steps:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v5
@@ -109,6 +109,7 @@ jobs:
   publish-npm:
     if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, 'rc')
     needs: release
+    # npm trusted publishing requires a GitHub-hosted runner.
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -128,7 +129,7 @@ jobs:
   publish-docker:
     if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, 'rc')
     needs: publish-npm
-    runs-on: ubuntu-latest
+    runs-on: boat
     permissions:
       packages: write
     steps:

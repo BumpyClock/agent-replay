@@ -4,8 +4,8 @@
  * Validate that generated session files match expected format structure.
  * Used by CI to catch upstream format changes in Claude Code and Codex.
  *
- * Usage: node test/validate-format.mjs <format> <file.jsonl>
- *   format: "claude" or "codex"
+ * Usage: node --import tsx test/validate-format.ts <format> <file.jsonl>
+ *   format: "claude", "codex", or "cursor"
  *
  * Exits 0 if valid, 1 if format has unexpected changes.
  */
@@ -14,7 +14,9 @@ import { readFileSync } from "node:fs";
 
 const [format, filePath] = process.argv.slice(2);
 if (!format || !filePath) {
-  console.error("Usage: node validate-format.mjs <claude|codex> <file.jsonl>");
+  console.error(
+    "Usage: node --import tsx test/validate-format.ts <claude|codex|cursor> <file.jsonl>",
+  );
   process.exit(1);
 }
 

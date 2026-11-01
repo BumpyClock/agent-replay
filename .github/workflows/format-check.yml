@@ -7,7 +7,7 @@ on:
 
 jobs:
   check-formats:
-    runs-on: ubuntu-latest
+    runs-on: boat
     env:
       HAS_ANTHROPIC: ${{ secrets.ANTHROPIC_API_KEY != '' }}
       HAS_OPENAI: ${{ secrets.OPENAI_API_KEY != '' }}
@@ -95,15 +95,15 @@ jobs:
       # ── Validate formats ────────────────────────────────
       - name: Validate Claude Code format
         if: env.HAS_ANTHROPIC == 'true'
-        run: node test/validate-format.mjs claude "$CLAUDE_SESSION"
+        run: node --import tsx test/validate-format.ts claude "$CLAUDE_SESSION"
 
       - name: Validate Codex format
         if: env.HAS_OPENAI == 'true'
-        run: node test/validate-format.mjs codex "$CODEX_SESSION"
+        run: node --import tsx test/validate-format.ts codex "$CODEX_SESSION"
 
       - name: Validate Cursor format
         if: env.HAS_CURSOR == 'true'
-        run: node test/validate-format.mjs cursor "$CURSOR_SESSION"
+        run: node --import tsx test/validate-format.ts cursor "$CURSOR_SESSION"
 
       # ── Render with claude-replay ───────────────────────
       - name: Render Claude Code session
